@@ -1,0 +1,395 @@
+/* ======================================================
+   GLOBAL RESET & COMMON VARIABLES
+====================================================== */
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #e5e5e5;
+  color: #000;
+}
+
+:root {
+  --sans: "Arial", "Helvetica", "Liberation Sans", sans-serif;
+  --ink: #000;
+  --grid: #1f4e79; /* blue stroke */
+  --hair: 0.25mm;
+  --rule: 0.35mm;
+  --thick: 0.7mm; /* thicker border for emphasis */
+}
+
+/* ======================================================
+   PRINT SETTINGS
+====================================================== */
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 297mm;
+    height: 210mm;
+    background: #fff;
+  }
+
+  .sheet1,
+  .sheet2 {
+    transform: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  table.report td,
+  table.report th,
+  table.report-meta td {
+    border-color: #000 !important; /* force black borders */
+  }
+
+  .hr {
+    border-top-color: #000 !important;
+  }
+
+  /* Hide button when printing */
+  .dnPDF {
+    display: none;
+  }
+}
+
+/* ======================================================
+   SCREEN VIEW SETTINGS (scroll front → back)
+====================================================== */
+@media screen {
+  body {
+    display: block; /* stack pages vertically */
+    padding: 10px;
+  }
+
+  #report-card-fp,
+  #report-card-bp {
+    display: block;
+    margin: 0 auto 20mm auto; /* space between front & back */
+  }
+}
+
+/* ======================================================
+   FRONT PAGE STYLES (sheet1)
+====================================================== */
+.sheet1 {
+  position: relative;
+  width: 297mm;
+  height: 210mm;
+  margin: 12mm auto;
+  background: #fff;
+  box-shadow: 0 1mm 6mm rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-family: var(--sans);
+}
+
+/* Frame */
+.page-frame1 {
+  position: absolute;
+  left: 12mm;
+  right: 12mm;
+  top: 12mm;
+  bottom: 12mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* Polygon header */
+.report-header {
+  position: absolute;
+  top: 5mm;
+  right: 8mm;
+  width: 135mm;
+}
+.report-header .polygon-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* School logo */
+.logo-wrap {
+  position: absolute;
+  top: 85mm;
+  right: 10mm;
+  width: 120mm;
+  text-align: center;
+}
+.logo-wrap .studentPhoto {
+  width: 60mm;
+  height: auto;
+  display: inline-block;
+}
+
+/* Student card */
+.student-card {
+  position: absolute;
+  right: 10mm;
+  bottom: 8mm;
+  width: 120mm;
+  height: 40mm;
+  border: var(--rule) solid var(--ink);
+  box-shadow: 0 0 1.2mm rgba(0, 0, 0, 0.15);
+  background: #fff;
+}
+.card-table {
+  border-collapse: collapse;
+  width: 100%;
+  height: 100%;
+  table-layout: fixed;
+  font-size: 4.2mm;
+}
+.card-table tr {
+  height: 25%;
+}
+.card-table th,
+.card-table td {
+  padding: 1mm 3mm;
+  border-bottom: var(--rule) solid var(--ink);
+  line-height: 1.1;
+}
+.card-table tr:last-child th,
+.card-table tr:last-child td {
+  border-bottom: 0;
+}
+.card-table th {
+  width: 56%;
+  text-align: left;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.card-table th em {
+  font-style: italic;
+  font-weight: 700;
+}
+.card-table td {
+  width: 44%;
+  text-align: left;
+  font-weight: 600;
+}
+span {
+  margin-left: 15px;
+}
+
+.basic-details {
+  text-transform: capitalize; /* makes each word start with uppercase */
+}
+
+/* Motto */
+.motto {
+  position: absolute;
+  left: 10mm;
+  bottom: 1mm;
+  width: 120mm;
+  border: var(--rule) solid var(--ink);
+  background: #fff;
+  box-shadow: 0 0 1.2mm rgba(0, 0, 0, 0.15);
+}
+.motto p {
+  margin: 3.6mm 5mm;
+  font-size: 4mm;
+  line-height: 1.35;
+}
+
+/* ======================================================
+   BACK PAGE STYLES (sheet2)
+====================================================== */
+.sheet2 {
+  position: relative;
+  width: 297mm;
+  height: 210mm;
+  margin: 12mm auto;
+  background: #fff;
+  box-shadow: 0 1mm 6mm rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-family: var(--sans);
+}
+
+/* Frame */
+.page-frame2 {
+  position: absolute;
+  left: 12mm;
+  right: 12mm;
+  top: 12mm;
+  bottom: 12mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* Report table */
+table.report {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 3.3mm;
+  line-height: 4.6mm;
+  font-variant-numeric: tabular-nums;
+}
+.report th,
+.report td {
+  border: var(--rule) solid var(--grid);
+  padding: 1mm 2mm;
+  height: 8mm;
+}
+.report thead th {
+  font-weight: 700;
+  text-align: center;
+  height: 12mm;
+  font-size: 3.3mm;
+}
+.report thead .col-sba,
+.report thead .col-exam,
+.report thead .col-total,
+.report thead .col-classavg,
+.report thead .col-grade,
+.report thead .col-remarks,
+.report thead .col-subject {
+  vertical-align: top;
+  padding-top: 1mm;
+}
+.report td.subject {
+  font-weight: 700;
+  color: var(--ink);
+}
+.report td:not(.subject):not([colspan]),
+.report th:not(.col-subject):not([colspan]) {
+  text-align: center;
+  vertical-align: middle;
+}
+#total-row td:first-child,
+#total-row td:last-child {
+  text-align: left !important;
+}
+tfoot td {
+  font-weight: 700;
+}
+tfoot td:last-child {
+  text-align: left;
+  font-weight: 700;
+}
+#promotion-class {
+  margin-left: 20px;
+  font-weight: bold;
+}
+
+/* Spacing */
+#rc-attitude-value,
+#rc-conduct-value,
+#rc-interest-value,
+#rc-remarks-value {
+  margin-left: 15px;
+}
+
+/* Adjusted column widths */
+.col-subject {
+  width: 56mm;
+}
+.col-sba {
+  width: 24mm;
+}
+.col-exam {
+  width: 26mm;
+}
+.col-total {
+  width: 26mm;
+}
+.col-grade {
+  width: 24mm;
+}
+.col-classavg {
+  width: 24mm;
+}
+.col-remarks {
+  width: 26mm;
+}
+
+.center {
+  text-align: center;
+}
+.right {
+  text-align: right;
+}
+.left {
+  text-align: left;
+}
+
+.hr {
+  border-top: var(--rule) solid var(--grid);
+  margin: 6mm 0;
+}
+.overall-title {
+  font-weight: 700;
+  margin: 4mm 0;
+}
+
+/* Report meta table */
+table.report-meta {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 3.3mm;
+  line-height: 4.6mm;
+}
+.report-meta td {
+  border: var(--rule) solid var(--grid);
+  padding: 2mm;
+  vertical-align: middle;
+}
+.report-meta .label {
+  font-weight: 700;
+}
+.report-meta .value-strong {
+  font-weight: 700;
+  font-style: italic;
+}
+.report-meta .outof {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Center the Download PDF button */
+.dnPDF {
+  display: block;
+  margin: 30px auto; /* centers horizontally */
+  background: #5e5df0;
+  border-radius: 999px;
+  box-shadow: #5e5df0 0 10px 20px -10px;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: Inter, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  padding: 12px 24px;
+  border: none;
+  outline: none;
+
+  /* Smooth animation */
+  transition: all 0.25s ease;
+}
+
+/* Hover effect → lift up */
+.dnPDF:hover,
+.dnPDF:focus {
+  transform: translateY(-5px); /* moves up */
+  box-shadow: #5e5df0 0 15px 25px -10px; /* bigger shadow */
+  background: #4c4bd8; /* slightly darker */
+}
+
+/* Active (when clicked) → press down */
+.dnPDF:active {
+  transform: translateY(0px) scale(0.98); /* press down */
+  box-shadow: #5e5df0 0 8px 16px -8px;
+}

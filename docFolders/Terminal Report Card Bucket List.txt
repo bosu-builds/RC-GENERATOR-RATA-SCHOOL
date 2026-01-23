@@ -1,0 +1,115 @@
+Things to change, or Work On
+
+
+
+Promotion: For now the code always promotes every student, irrespective of the term, it should only promote the 
+student when some conditions are valid...When the term is Term 3 OR Third Term --- ✅ DONE
+
+
+Proper calculation of aggregate score:
+For now, the calculation for the aggregate is wrong, so we have to ensure the right calculation of the aggregate score
+
+
+A picture of a given student will be on the terminal report (front page pf the terminal report) --- ✅ DONE
+
+
+Computing is included in the lower primary terminal report
+We have to remove it completely from their terminal report since they don't do computing --- ✅ DONE
+
+
+When student doesn't write a specific subject's exam, either dash or something more professional 
+should be filled in that place, on the report card
+
+
+For now the application doesn't account for preschool students, such as KG, Nursery 
+& Creche
+We have make the application account for preschool students too ---    ✅ DONE
+
+
+We should account for KG, Nursery Subjects as we do for JHS and Lower and Upper Primary
+
+
+
+When we generate the report card for classes lower than basic 1, their class dont show on the front page
+
+
+I just realised that, KG 1 and 2, Nursery 1 and 2 and Creche does different subjects from the basic 1 - 9
+
+Chreche --- Literacy, Numeracy, Creativity and Nature and Science
+Nursery 1 --- Literacy, Numeracy, Creativity and Nature and Science
+Nursery 2 --- Literacy, Numeracy, Creativity and Nature and Science
+KG 1 --- ?
+KG 2 --- ?
+
+
+
+For now the code doesnt handle students with multiple names properly
+
+And we should create smt, for us to be able to edit the informations of students by the best and easy methods or populating it...
+
+
+
+
+What if a certain student doesnt write a certain subject
+
+
+when the averages are calculated and saved,
+I want it to show an alert of how many students in a specific cohort are been used for the calculation
+
+For example : "The averages of 8 students from (this cohort) of 8 subjects has been calculated",
+ so the current averages of the 8 subjects in the cohort are 
+
+
+
+For now the program expects only two names from a student,
+the program should be able to handle multiple names, for example: Kaniba Williams Osae Korankye 
+
+In this case the student id should only use the first and the last names of the person, so in this case
+the srudent id will be "kaniba_korankye"
+
+And the program should still use the students full name to fill the sheet
+
+
+I want to add this too, 
+when i click on the download button, this is what appears and when this happens 
+i want to click on save to actually save the pdf,and doing that i have to give the pdf a file name,
+what i want to ask is that, can i do it in a way that the file name takes the name of the student
+
+Where is Bnull-T1-Y2025 coming from
+
+{Bnull-T1-Y2025: {…}, B7-T1-Y2025: {…}, B4-T1-Y2025: {…}, B6-T3-Y2025: {…}}
+B4-T1-Y2025
+: 
+{richard_adeti: {…}, _averages: {…}, madia_yakubu: {…}}
+B6-T3-Y2025
+: 
+{moses_darko: {…}, _averages: {…}}
+B7-T1-Y2025
+: 
+{haadi_kudus: {…}, _averages: {…}}
+Bnull-T1-Y2025
+: 
+{haadi_kudus: {…}, _averages: {…}}
+[[Prototype]]
+: 
+Object
+
+
+
+
+As time goes on we have to implement a system whereby teachers are abl to do their inputs on their own,
+using their phones
+
+
+When a student info is inputed on the studentinfo form and then next is clicked, it should check that the student has already been saved,
+If the student has already been saved it should fill the scoresform  with the students scores that was saved, 
+so may be if there are any corrections we have to make, can be made ... 
+Now if it checks and the student's information hasnt been saved, thats we just continue the normal process
+
+
+
+
+I WILL FOCUS ON THIS TONIGHT AFTER MARKING MY EXAM PAPERS
+
+i have a some pictures which i am using for my automatic report card generator app, but they are of different dimensions, so even if i use css to control the sizes
+i get very poor inconsistent results

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Terminal Report — Front & Back Page</title>
+
+    <link rel="stylesheet" href="./RC-F-B.css" />
+  </head>
+  <body>
+    <div id="report-card-fp">
+      <div class="sheet1 page" role="document">
+        <div class="page-frame1">
+          <!-- ===== Polygon Header with Logo ===== -->
+          <header class="report-header">
+            <img
+              src="../images/rcAssets/polygonNew.png"
+              alt="Report Header"
+              class="polygon-bg"
+            />
+          </header>
+
+          <!-- ===== School Logo (sits under polygon, above student-card) ===== -->
+          <div class="logo-wrap">
+            <img
+              src=""
+              alt="School Logo"
+              class="studentPhoto"
+              id="studentPhoto"
+            />
+          </div>
+
+          <!-- ===== Student Information (bottom-right card) ===== -->
+          <aside class="student-card" aria-label="Student Information">
+            <table class="card-table" role="table">
+              <tbody>
+                <tr>
+                  <td scope="row">
+                    CHILD’S NAME:
+                    <span class="basic-details" id="childName"></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td scope="row">
+                    <em>BASIC</em> :
+                    <span class="basic-details" id="basic"></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td scope="row">
+                    SCHOOL TERM: <span class="basic-details" id="term"></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td scope="row">
+                    ACADEMIC YEAR: <span class="basic-details" id="year"></span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </aside>
+
+          <!-- ===== Scripture / Motto (bottom-left box) ===== -->
+          <footer class="motto" role="contentinfo">
+            <p>
+              <em
+                >Train up a child in the way he should go: and when he is old,
+                <br />
+                he will not depart from it. Prov 22:6</em
+              >
+            </p>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div id="report-card-bp" class="scale">
+      <div class="sheet2 page" role="document">
+        <div class="page-frame2">
+          <div>
+            <table class="report">
+              <colgroup>
+                <col class="col-subject" />
+                <col class="col-sba" />
+                <col class="col-exam" />
+                <col class="col-total" />
+                <col class="col-grade" />
+                <col class="col-classavg" />
+                <col class="col-remarks" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="col-subject">
+                    <div id="primary-jhs">Upper Primary</div>
+                    <div>Subjects</div>
+                  </th>
+                  <th class="col-sba">SBA<br />30%</th>
+                  <th class="col-exam">Exam Score<br />70%</th>
+                  <th class="col-total">Total Score<br />100%</th>
+                  <th class="col-grade">Grade</th>
+                  <th class="col-classavg">Class<br />Average</th>
+                  <th class="col-remarks">Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="subject">English Language</td>
+                  <td id="rc-eng-sba"></td>
+                  <td id="rc-eng-exam"></td>
+                  <td id="rc-eng-total"></td>
+                  <td id="rc-eng-grade"></td>
+                  <td id="rc-eng-average"></td>
+                  <td id="rc-eng-remarks"></td>
+                </tr>
+
+                <tr>
+                  <td class="subject">Mathematics</td>
+                  <td id="rc-math-sba"></td>
+                  <td id="rc-math-exam"></td>
+                  <td id="rc-math-total"></td>
+                  <td id="rc-math-grade"></td>
+                  <td id="rc-math-average"></td>
+                  <td id="rc-math-remarks"></td>
+                </tr>
+                <tr>
+                  <td class="subject">Integrated Science</td>
+                  <td id="rc-sci-sba"></td>
+                  <td id="rc-sci-exam"></td>
+                  <td id="rc-sci-total"></td>
+                  <td id="rc-sci-grade"></td>
+                  <td id="rc-sci-average"></td>
+                  <td id="rc-sci-remarks"></td>
+                </tr>
+                <tr>
+                  <td class="subject">History</td>
+                  <td id="rc-history-sba"></td>
+                  <td id="rc-history-exam"></td>
+                  <td id="rc-history-total"></td>
+                  <td id="rc-history-grade"></td>
+                  <td id="rc-history-average"></td>
+                  <td id="rc-history-remarks"></td>
+                </tr>
+                <tr>
+                  <td class="subject">Religious &amp; Moral Education</td>
+                  <td id="rc-rme-sba"></td>
+                  <td id="rc-rme-exam"></td>
+                  <td id="rc-rme-total"></td>
+                  <td id="rc-rme-grade"></td>
+                  <td id="rc-rme-average"></td>
+                  <td id="rc-rme-remarks"></td>
+                </tr>
+                <tr>
+                  <td class="subject">Computing</td>
+                  <td id="rc-comp-sba"></td>
+                  <td id="rc-comp-exam"></td>
+                  <td id="rc-comp-total"></td>
+                  <td id="rc-comp-grade"></td>
+                  <td id="rc-comp-average"></td>
+                  <td id="rc-comp-remarks"></td>
+                </tr>
+                <tr>
+                  <td class="subject">Creative Arts</td>
+                  <td id="rc-arts-sba"></td>
+                  <td id="rc-arts-exam"></td>
+                  <td id="rc-arts-total"></td>
+                  <td id="rc-arts-grade"></td>
+                  <td id="rc-arts-average"></td>
+                  <td id="rc-arts-remarks"></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr id="total-row">
+                  <td><strong>TOTAL</strong></td>
+                  <td id="rc-total-sba"></td>
+                  <td id="rc-total-exam"></td>
+                  <td id="rc-total-score"></td>
+                  <td id="rc-total-grade"></td>
+                  <td colspan="2">
+                    <strong id="rc-total-remarks">PROMOTED TO:</strong>
+                    <span id="promotion-class"></span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div class="hr"></div>
+
+            <div class="overall-title">Overall performance:</div>
+
+            <table class="report-meta">
+              <colgroup>
+                <col style="width: 27%" />
+                <!-- Attendance -->
+                <col style="width: 15%" />
+                <!-- blank / number -->
+                <col style="width: 10%" />
+                <!-- Out of -->
+                <col style="width: 8%" />
+                <!-- 68 or merged -->
+                <col style="width: 20%" />
+                <!-- Right-side labels -->
+                <col style="width: 20%" />
+                <!-- Right-side values -->
+              </colgroup>
+
+              <tbody>
+                <tr>
+                  <td class="label">Attendance:</td>
+                  <td class="center" id="rc-attendance"></td>
+                  <td class="label outof">Out of</td>
+                  <td class="center" id="rc-attendance-outof">80</td>
+                  <td class="label">School Closes on:</td>
+                  <td class="value-strong">Friday, December 19, 2025</td>
+                </tr>
+                <tr>
+                  <td class="label" colspan="4" id="rc-attitude">
+                    Attitude: <span id="rc-attitude-value"></span>
+                  </td>
+                  <td class="label">Re-Opens on:</td>
+                  <td class="value-strong">Thursday, January 08, 2026</td>
+                </tr>
+                <tr>
+                  <td class="label" colspan="4" id="rc-conduct">
+                    Character/Conduct: <span id="rc-conduct-value"></span>
+                  </td>
+                  <td class="label">Fees in Arrears GHC</td>
+                  <td id="rc-fees"></td>
+                </tr>
+                <tr>
+                  <td class="label" colspan="4" id="rc-interest">
+                    Interest: <span id="rc-interest-value"></span>
+                  </td>
+                  <td class="label">Bill for next term GHC</td>
+                  <td id="rc-bill"></td>
+                </tr>
+                <tr>
+                  <td class="label" colspan="4" id="rc-remarks">
+                    Class Teachers Remarks: <span id="rc-remarks-value"></span>
+                  </td>
+                  <td class="label">Head Teacher’s signature:</td>
+                  <td id="rc-headteacher"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="printReportCard()" class="dnPDF" role="button">
+      Download PDF
+    </button>
+
+    <script src="./RC-F-B.js"></script>
+  </body>
+</html>

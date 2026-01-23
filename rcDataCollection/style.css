@@ -1,0 +1,51 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+form {
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #aaa;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover {
+  background: #0056b3;
+}
+
+.btn-disabled {
+  background: gray;
+  pointer-events: none; /* makes it unclickable */
+  opacity: 0.6;
+}
+
+.hidden {
+  display: none;
+}
+
+#saveStudentBtn,
+#nextStudentBtn {
+  margin-bottom: 15px;
+}
