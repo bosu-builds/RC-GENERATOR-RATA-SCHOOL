@@ -1,51 +1,183 @@
+/* 1. GLOBAL LAYOUT */
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Inter", Arial, sans-serif;
+  background-color: #f4f7f6;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
   padding: 20px;
+  color: #333;
 }
+
+h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* 2. THE "GLUE" (Visibility) */
+.hidden {
+  /* This forces the element to hide regardless of layout mode, And this is how i want to be actually */
+  display: none !important;
+}
+
+/* 3. FORM STYLING */
 form {
-  max-width: 400px;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  margin-bottom: 20px;
 }
+
 label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
 }
-input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border-radius: 5px;
-  border: 1px solid #aaa;
-}
-button {
+
+input,
+select {
   width: 100%;
   padding: 10px;
-  background: #007bff;
+  margin-bottom: 18px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box; /* Prevents input from overflowing form width */
+  font-size: 15px;
+}
+
+input:focus {
+  border-color: #5e5df0;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 93, 240, 0.1);
+}
+
+/* 4. BUTTON STYLES */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #5e5df0;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
+  font-weight: 600;
+  transition: background 0.2s;
+  margin-top: 5px;
 }
+
 button:hover {
   background: #0056b3;
 }
 
 .btn-disabled {
-  background: gray;
-  pointer-events: none; /* makes it unclickable */
-  opacity: 0.6;
+  background: #bdc3c7 !important;
+  pointer-events: none;
+  opacity: 0.7;
 }
 
-.hidden {
-  display: none;
+/* 5. ACTIVITY BOX (The Center Menu) */
+.activity-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  /* Fixes the menu in the dead center of the screen */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
 }
 
+.activity-btn {
+  width: 280px;
+  background: #5e5df0;
+  border-radius: 50px;
+  box-shadow: 0 10px 20px -10px #5e5df0;
+  padding: 16px 32px;
+  transition: all 0.25s ease;
+  margin: 0; /* Override default button margin */
+}
+
+.activity-btn:hover {
+  transform: translateY(-3px);
+  background: #4c4bd8;
+  box-shadow: 0 15px 25px -10px #5e5df0;
+}
+
+.activity-btn:active {
+  transform: translateY(0px);
+}
+
+/* ================================
+   6. UTILITIES
+================================ */
 #saveStudentBtn,
 #nextStudentBtn {
   margin-bottom: 15px;
+}
+
+#studentDropdown {
+  margin-top: 15px;
+  border: 2px solid #5e5df0;
+}
+
+.activity-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px; /* Spacing between icon and text */
+}
+
+.material-symbols-outlined {
+  font-size: 24px;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 600,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.grading-header {
+  text-align: center;
+  margin-bottom: 20px;
+  background: #eef2f5;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 5px solid #5e5df0;
+}
+
+.grading-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.grading-table th {
+  text-align: left;
+  padding: 10px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+}
+
+.grading-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.score-input {
+  width: 80px; /* Small box for numbers */
+  padding: 8px;
+  margin: 0; /* Override global input margin */
+  text-align: center;
+  font-weight: bold;
 }

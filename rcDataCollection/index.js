@@ -1,232 +1,178 @@
 "use strict";
 
-/* ================================
-   DOM ELEMENTS
-================================ */
-const studentForm = document.getElementById("studentForm");
-const scoresForm = document.getElementById("scoresForm");
-const ovrPerformanceForm = document.getElementById("ovrPerformance");
-const nextStuInfoBtn = document.getElementById("Next-Student-Form");
-const nextScoresFormBtn = document.getElementById("Next-Scores-Form");
-const genRepCardBtn = document.getElementById("genRepCardBtn");
-const saveStuBtn = document.getElementById("saveStudentBtn");
-const nextStudentBtn = document.getElementById("nextStudentBtn");
-const studentDropdown = document.getElementById("studentDropdown");
+// SUPABASE CONNECTION & CREDENTIALS
+const supabaseUrl = "https://dlcraalewausdcatouqp.supabase.co";
+const supabaseKey = "sb_publishable_LBkGLuDop84iUCB6Yxd_Dg_LpaC-kyG";
+const _supabase = window.supabase
+  ? window.supabase.createClient(supabaseUrl, supabaseKey)
+  : null;
 
-// studentInfo DOM
-const studentName = document.getElementById("studentName");
-const grade = document.getElementById("grade");
-const term = document.getElementById("term");
-const year = document.getElementById("year");
+// CLOUD SYNC ENGINE: Merges local data with cloud data to prevent overwriting other teachers' work
+const syncToCloud = async (localStudent) => {
+  if (!_supabase) return console.warn("Supabase not initialized.");
+  if (!navigator.onLine)
+    return console.warn("⚠️ Device offline. Local save only.");
 
-// scoresForm DOM
-const englishSba = document.getElementById("english-sba");
-const englishExam = document.getElementById("english-exam");
-const mathematicsSba = document.getElementById("mathematics-sba");
-const mathematicsExam = document.getElementById("mathematics-exam");
-const scienceSba = document.getElementById("science-sba");
-const scienceExam = document.getElementById("science-exam");
-const historySba = document.getElementById("history-sba");
-const historyExam = document.getElementById("history-exam");
-const rmeSba = document.getElementById("rme-sba");
-const rmeExam = document.getElementById("rme-exam");
-const computingSba = document.getElementById("computing-sba");
-const computingExam = document.getElementById("computing-exam");
-const creativeArtsSba = document.getElementById("creativity-sba");
-const creativeArtsExam = document.getElementById("creativity-exam");
+  try {
+    // 1. Check if this student already exists in the cloud
+    const { data: cloudEntry, error: fetchError } = await _supabase
+      .from("students_sync")
+      .select("data")
+      .eq("id", localStudent.id)
+      .maybeSingle();
 
-// Overall Performance DOM
-const attendance = document.getElementById("attendance");
-const attitude = document.getElementById("attitude");
-const character = document.getElementById("character");
-const interest = document.getElementById("interest");
-const ctRemarks = document.getElementById("ct-remarks");
+    let finalData = localStudent;
 
-// HIDE COMPUTING FOR CLASSES BELOW BASIC 4
-const computingContainer = document.getElementById("comHide");
-
-// Hide forms by default
-scoresForm.classList.add("hidden");
-ovrPerformanceForm.classList.add("hidden");
-
-/* ================================
-   APP STATE
-================================ */
-const studentInfo = {};
-const subjectScores = {};
-const ovrPerformanceDetails = {};
-
-/* ================================
-   HELPERS
-================================ */
-const enableDatalistReopen = function (inputEl) {
-  inputEl.addEventListener("focus", function () {
-    this.setAttribute("autocomplete", "off");
-    this.value = "";
-  });
-
-  // STRIP LEADING NUMBERS LIKE (1), (2), ETC.
-  inputEl.addEventListener("input", function () {
-    this.value = this.value.replace(/^\(\d+\)\s*/, "");
-  });
-};
-
-// Apply to all relevant datalist inputs
-enableDatalistReopen(grade);
-enableDatalistReopen(year);
-enableDatalistReopen(term);
-enableDatalistReopen(attitude);
-enableDatalistReopen(character);
-enableDatalistReopen(interest);
-enableDatalistReopen(ctRemarks);
-
-const checkScoresFormInputs = function () {
-  const hasComputing = studentInfo.class >= 4;
-
-  const requiredInputs = [
-    englishSba,
-    englishExam,
-    mathematicsSba,
-    mathematicsExam,
-    scienceSba,
-    scienceExam,
-    historySba,
-    historyExam,
-    rmeSba,
-    rmeExam,
-    creativeArtsSba,
-    creativeArtsExam,
-  ];
-
-  if (hasComputing) {
-    requiredInputs.push(computingSba, computingExam);
-  }
-
-  let allFilled = true;
-  for (let i = 0; i < requiredInputs.length; i++) {
-    if (!requiredInputs[i].value.trim()) {
-      allFilled = false;
-      break;
+    // 2. SMART MERGE: If cloud data exists, combine it with local data
+    // This ensures that if Teacher A enters Math and Teacher B enters English, both are saved.
+    if (cloudEntry && cloudEntry.data) {
+      const cloudStudent = cloudEntry.data;
+      finalData = {
+        ...cloudStudent,
+        ...localStudent,
+        scores: {
+          ...(cloudStudent.scores || {}),
+          ...(localStudent.scores || {}),
+        },
+        performance: {
+          ...(cloudStudent.performance || {}),
+          ...(localStudent.performance || {}),
+        },
+        granularScores: {
+          ...(cloudStudent.granularScores || {}),
+          ...(localStudent.granularScores || {}),
+        },
+        updatedAt: new Date().toISOString(),
+      };
     }
+
+    // 3. Update the local Dexie database with the merged version
+    await db.students.put(finalData);
+
+    // 4. Push the final merged record back to the cloud
+    const { error: upsertError } = await _supabase
+      .from("students_sync")
+      .upsert({
+        id: finalData.id,
+        class_key: finalData.classKey,
+        student_name: finalData.info.name,
+        data: finalData,
+        updated_at: finalData.updatedAt,
+      });
+
+    if (upsertError) throw upsertError;
+    console.log(`☁️ Smart Sync Success: ${finalData.info.name}`);
+  } catch (err) {
+    console.error("❌ Cloud Sync Failed:", err.message);
   }
-
-  nextScoresFormBtn.disabled = !allFilled;
-  nextScoresFormBtn.classList.toggle("btn-disabled", !allFilled);
 };
 
-const calcSubjectTotals = function (sba, examRaw) {
-  const s = Number(sba);
-  const e = Number(examRaw);
-  const exam70 = Math.round((e * 70) / 100);
-  return s + exam70;
+// MASTER VAULT SYNC: Downloads everything from the cloud to the official records for printing
+const syncMasterVault = async () => {
+  if (!_supabase) return alert("Supabase not initialized.");
+  try {
+    const { data, error } = await _supabase
+      .from("students_sync")
+      .select("data");
+    if (error) throw error;
+
+    await db.master_records.clear();
+    const officialRecords = data.map((row) => row.data);
+    await db.master_records.bulkPut(officialRecords);
+
+    alert(
+      `✅ VAULT UPDATED: ${data.length} student records synced from the cloud.`,
+    );
+  } catch (err) {
+    alert("❌ Vault sync failed. Check your internet connection.");
+  }
 };
 
-const getGrade = function (total) {
-  if (total >= 80) return "A1";
-  if (total >= 70) return "B2";
-  if (total >= 65) return "B3";
-  if (total >= 60) return "C4";
-  if (total >= 55) return "C5";
-  if (total >= 50) return "C6";
-  if (total >= 45) return "D7";
-  if (total >= 40) return "E8";
-  return "F9";
+// HELPER FUNCTIONS: Date formatting and ID generation
+const formatPolishedDate = (isoString) => {
+  if (!isoString) return "None (First Save)";
+  const date = new Date(isoString);
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  const ampm = hours >= 12 ? "pm" : "am";
+  hours = hours % 12 || 12;
+  const strTime = `${hours}:${minutes < 10 ? "0" + minutes : minutes} ${ampm}`;
+  const day = date.getDate();
+  let suffix = "th";
+  if (day % 10 === 1 && day !== 11) suffix = "st";
+  else if (day % 10 === 2 && day !== 12) suffix = "nd";
+  else if (day % 10 === 3 && day !== 13) suffix = "rd";
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  return `${strTime} ${day}${suffix} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 };
 
-const checkStuInfoInputs = function () {
-  const allFilled =
-    studentName.value.trim() &&
-    grade.value.trim() &&
-    term.value.trim() &&
-    year.value.trim();
-
-  nextStuInfoBtn.disabled = !allFilled;
-  nextStuInfoBtn.classList.toggle("btn-disabled", !allFilled);
+const generateSmartId = (name, cNum, term, year) => {
+  const parts = name.trim().toLowerCase().split(/\s+/);
+  return `${parts[0]}_${parts[parts.length - 1]}_b${cNum}_t${term}_${year}`;
 };
 
-const checkOvrPerformanceFormInputs = function () {
-  const allFilled =
-    attendance.value.trim() &&
-    attitude.value.trim() &&
-    character.value.trim() &&
-    interest.value.trim() &&
-    ctRemarks.value.trim();
-
-  saveStuBtn.disabled = !allFilled;
-  nextStudentBtn.disabled = !allFilled;
-  genRepCardBtn.disabled = !allFilled;
-
-  saveStuBtn.classList.toggle("btn-disabled", !allFilled);
-  nextStudentBtn.classList.toggle("btn-disabled", !allFilled);
-  genRepCardBtn.classList.toggle("btn-disabled", !allFilled);
-};
-
-/* ================================
-   EVENT LISTENERS
-================================ */
-const stuInfoInputs = [studentName, grade, term, year];
-stuInfoInputs.forEach((input) =>
-  input.addEventListener("input", checkStuInfoInputs)
-);
-
-// SCORES inputs
-const scoresFormInputs = [
-  englishSba,
-  englishExam,
-  mathematicsSba,
-  mathematicsExam,
-  scienceSba,
-  scienceExam,
-  historySba,
-  historyExam,
-  rmeSba,
-  rmeExam,
-  computingSba,
-  computingExam,
-  creativeArtsSba,
-  creativeArtsExam,
-];
-
-// scoresFormInputs.forEach((input) => {
-//   if (input) input.addEventListener("input", checkScoresFormInputs);
-// });
-
-scoresFormInputs.forEach((input) => {
-  if (!input) return;
-
-  input.addEventListener("input", () => {
-    if (input.closest(".hidden")) return;
-    checkScoresFormInputs();
-  });
+// DATABASE SETUP: Dexie DB configuration and school subject lists
+const db = new Dexie("RataSchoolDB");
+db.version(2).stores({
+  students: "id, classKey",
+  master_records: "id, classKey",
 });
 
-// SBA ranges
-document.querySelectorAll(".sba").forEach((input) => {
-  input.addEventListener("input", () => {
-    const val = Number(input.value);
-    if (isNaN(val) || val < 0 || val > 30) input.value = "";
-  });
-});
-
-// EXAM ranges
-document.querySelectorAll(".exam").forEach((input) => {
-  input.addEventListener("input", () => {
-    const val = Number(input.value);
-    if (isNaN(val) || val < 0 || val > 100) input.value = "";
-  });
-});
-
-// Performance inputs
-const ovrPerformanceInputs = [
-  attendance,
-  attitude,
-  character,
-  interest,
-  ctRemarks,
-];
-ovrPerformanceInputs.forEach((input) =>
-  input.addEventListener("input", checkOvrPerformanceFormInputs)
-);
+const schoolSubjects = {
+  KG: [
+    { id: 101, name: "Literacy" },
+    { id: 102, name: "Listening" },
+    { id: 103, name: "Vocabulary" },
+    { id: 104, name: "Alphabet" },
+    { id: 105, name: "Phonics" },
+    { id: 106, name: "Writing" },
+    { id: 107, name: "Numeracy" },
+    { id: 301, name: "Creative Arts" },
+    { id: 108, name: "Print" },
+    { id: 109, name: "Nature Science" },
+  ],
+  "Lower Primary": [
+    { id: 201, name: "English" },
+    { id: 202, name: "Maths" },
+    { id: 203, name: "Science" },
+    { id: 205, name: "RME" },
+    { id: 301, name: "Creative Arts" },
+    { id: 204, name: "History" },
+  ],
+  "Upper Primary": [
+    { id: 201, name: "English" },
+    { id: 202, name: "Maths" },
+    { id: 203, name: "Science" },
+    { id: 204, name: "History" },
+    { id: 302, name: "Computing" },
+    { id: 205, name: "RME" },
+    { id: 301, name: "Creative Arts" },
+  ],
+  JHS: [
+    { id: 201, name: "English" },
+    { id: 202, name: "Maths" },
+    { id: 203, name: "Science" },
+    { id: 206, name: "Social Studies" },
+    { id: 304, name: "Career Tech" },
+    { id: 205, name: "RME" },
+    { id: 302, name: "Computing" },
+    { id: 303, name: "Creative Arts" },
+    { id: 401, name: "Twi" },
+  ],
+};
 
 const mapClassToNumber = {
   "Basic 1": 1,
@@ -235,301 +181,356 @@ const mapClassToNumber = {
   "Basic 4": 4,
   "Basic 5": 5,
   "Basic 6": 6,
+  "KG 1": "KG1",
+  "KG 2": "KG2",
+  "JHS 1": 7,
+  "JHS 2": 8,
+  "JHS 3": 9,
 };
 
-/* ================================
-   NEXT BUTTON LOGIC
-================================ */
-nextStuInfoBtn.addEventListener("click", function (event) {
-  event.preventDefault();
+const getLevelByGrade = (gradeValue) => {
+  if (gradeValue.includes("KG")) return "KG";
+  if (gradeValue.includes("JHS")) return "JHS";
+  const num = parseInt(gradeValue.replace(/\D/g, ""));
+  if (num >= 1 && num <= 3) return "Lower Primary";
+  if (num >= 4 && num <= 6) return "Upper Primary";
+  return null;
+};
 
-  studentInfo.name = studentName.value;
-  studentInfo.class = mapClassToNumber[grade.value] ?? null;
+// UI ELEMENTS: References to DOM containers and buttons
+const activityBox = document.getElementById("activity-box");
+const studentForm = document.getElementById("studentForm");
+const examScoresForm = document.getElementById("examScoresForm");
+const dynamicSubjectsContainer = document.getElementById(
+  "dynamic-subjects-container",
+);
+const ovrPerformanceForm = document.getElementById("ovrPerformance");
+const nextStuInfoBtn = document.getElementById("Next-Student-Form");
+const nextExamScoresFormBtn = document.getElementById("Next-Exam-Scores-Form");
+const genRepCardBtn = document.getElementById("genRepCardBtn");
+const saveStuBtn = document.getElementById("saveStudentBtn");
+const nextStudentBtn = document.getElementById("nextStudentBtn");
+const studentDropdown = document.getElementById("studentDropdown");
+const addStudentForm = document.getElementById("addStudentForm");
+const assignmentForm = document.getElementById("assignmentForm");
+const activityAddStudent = document.getElementById("add-student-btn");
+const activitySba = document.getElementById("sba-btn");
+const activityExam = document.getElementById("exam-btn");
+const assignmentGrade = document.getElementById("assignment-grade");
+const subjectOptions = document.getElementById("subjectOptions");
+const gradingContainer = document.getElementById("grading-container");
+const studentListBody = document.getElementById("student-list-body");
+const syncVaultBtn = document.getElementById("syncVaultBtn");
 
-  const hasComputing = studentInfo.class >= 4;
+if (syncVaultBtn) syncVaultBtn.addEventListener("click", syncMasterVault);
 
-  if (!hasComputing) {
-    computingContainer.classList.add("hidden");
-  } else {
-    computingContainer.classList.remove("hidden");
+// INPUT VALIDATION: Keeps scores within allowed ranges (0-100 or 0-Max)
+studentListBody.addEventListener("input", (e) => {
+  if (e.target.classList.contains("grading-score-input")) {
+    const input = e.target;
+    const max = parseFloat(input.getAttribute("max")) || 100;
+    const val = parseFloat(input.value);
+    if (input.value !== "" && (val > max || val < 0)) input.value = "";
   }
-
-  studentInfo.term = Number(term.value);
-  studentInfo.year = Number(year.value);
-
-  localStorage.setItem("studentInfo", JSON.stringify(studentInfo));
-
-  nextScoresFormBtn.disabled = true;
-  nextScoresFormBtn.classList.add("btn-disabled");
-
-  studentForm.classList.add("hidden");
-  scoresForm.classList.remove("hidden");
 });
 
-nextScoresFormBtn.addEventListener("click", function (event) {
-  event.preventDefault();
+dynamicSubjectsContainer.addEventListener("input", (e) => {
+  if (e.target.classList.contains("exam")) {
+    const input = e.target;
+    const val = parseFloat(input.value);
+    if (input.value !== "" && (val > 100 || val < 0)) input.value = "";
+  }
+});
 
-  /* DIRECT ASSIGNMENT (your original style) */
-  subjectScores.englishSba = Number(englishSba.value);
-  subjectScores.englishExam = Number(englishExam.value);
+// NAVIGATION HANDLERS: Controlling which forms are visible
+[
+  addStudentForm,
+  assignmentForm,
+  studentForm,
+  examScoresForm,
+  ovrPerformanceForm,
+].forEach((f) => f.classList.add("hidden"));
 
-  subjectScores.mathematicsSba = Number(mathematicsSba.value);
-  subjectScores.mathematicsExam = Number(mathematicsExam.value);
+activityAddStudent.addEventListener("click", () => {
+  activityBox.classList.add("hidden");
+  addStudentForm.classList.remove("hidden");
+});
+activitySba.addEventListener("click", () => {
+  activityBox.classList.add("hidden");
+  assignmentForm.classList.remove("hidden");
+});
+activityExam.addEventListener("click", () => {
+  activityBox.classList.add("hidden");
+  studentForm.classList.remove("hidden");
+});
 
-  subjectScores.scienceSba = Number(scienceSba.value);
-  subjectScores.scienceExam = Number(scienceExam.value);
+// STUDENT REGISTRATION: Creates a new student record and pushes to cloud
+const saveNewStudentBtn = document.getElementById("saveNewStudentBtn");
+saveNewStudentBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("new-student-name").value;
+  const gradeVal = document.getElementById("new-grade").value;
+  if (!name || !gradeVal) return alert("Fill all fields");
 
-  subjectScores.historySba = Number(historySba.value);
-  subjectScores.historyExam = Number(historyExam.value);
+  const cNum = mapClassToNumber[gradeVal] || gradeVal;
+  const term = document.getElementById("new-term").value;
+  const year = document.getElementById("new-year").value;
+  const id = generateSmartId(name, cNum, term, year);
 
-  subjectScores.rmeSba = Number(rmeSba.value);
-  subjectScores.rmeExam = Number(rmeExam.value);
+  const newStudentData = {
+    id,
+    classKey: `B${cNum}-T${term}-Y${year}`,
+    info: { name, class: cNum, term, year },
+    scores: {},
+    performance: {},
+    updatedAt: new Date().toISOString(),
+  };
 
-  if (studentInfo.class >= 4) {
-    subjectScores.computingSba = Number(computingSba.value);
-    subjectScores.computingExam = Number(computingExam.value);
+  await db.students.put(newStudentData);
+  await syncToCloud(newStudentData);
+  alert("Student Added!");
+  addStudentForm.reset();
+});
+
+const goBackToHomePageFromAddStudent = document.getElementById(
+  "goBackToHomePageFromAddStudent",
+);
+if (goBackToHomePageFromAddStudent) {
+  goBackToHomePageFromAddStudent.addEventListener("click", () => {
+    activityBox.classList.remove("hidden");
+    addStudentForm.classList.add("hidden");
+  });
+}
+
+// SBA & ASSIGNMENT GRADING: Bulk entry for class assignments/classwork
+assignmentGrade.addEventListener("input", () => {
+  const level = getLevelByGrade(assignmentGrade.value);
+  subjectOptions.innerHTML = "";
+  if (level && schoolSubjects[level]) {
+    schoolSubjects[level].forEach((sub) => {
+      const opt = document.createElement("option");
+      opt.value = sub.name;
+      subjectOptions.appendChild(opt);
+    });
+  }
+});
+
+const assignmentFormElement = document.getElementById("assignmentForm");
+assignmentFormElement.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const year = document.getElementById("assignment-year").value;
+  const grade = assignmentGrade.value;
+  const term = document.getElementById("assignment-term").value;
+  const max = document.getElementById("assignment-max").value || 100;
+
+  const cNum = mapClassToNumber[grade] || grade;
+  const targetClassKey = `B${cNum}-T${term}-Y${year}`;
+
+  const cohort = await db.students
+    .where("classKey")
+    .equals(targetClassKey)
+    .toArray();
+  if (cohort.length === 0)
+    return alert("No students found. Register students first.");
+
+  studentListBody.innerHTML = "";
+  cohort.forEach((stu) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${stu.info.name}</td><td><input type="number" class="grading-score-input" data-student-id="${stu.id}" min="0" max="${max}" placeholder="0-${max}"></td>`;
+    studentListBody.appendChild(tr);
+  });
+
+  document.getElementById("grading-title").innerText =
+    `Grading: ${document.getElementById("assignment-subject").value}`;
+  assignmentFormElement.classList.add("hidden");
+  gradingContainer.classList.remove("hidden");
+});
+
+document
+  .getElementById("save-scores-btn")
+  .addEventListener("click", async () => {
+    const inputs = document.querySelectorAll(".grading-score-input");
+    const subject = document.getElementById("assignment-subject").value;
+    const typeKey = `${document.getElementById("assignment-type").value}_${document.getElementById("assignment-number").value}`;
+
+    for (const input of inputs) {
+      const student = await db.students.get(input.dataset.studentId);
+      if (student) {
+        if (!student.granularScores) student.granularScores = {};
+        if (!student.granularScores[subject])
+          student.granularScores[subject] = [];
+        student.granularScores[subject].push({
+          type: typeKey,
+          score: input.value,
+          max: document.getElementById("assignment-max").value,
+          date: document.getElementById("assignment-date").value,
+          updatedAt: new Date().toISOString(),
+        });
+        await db.students.put(student);
+        await syncToCloud(student);
+      }
+    }
+    alert("Scores saved!");
+    gradingContainer.classList.add("hidden");
+    activityBox.classList.remove("hidden");
+    assignmentFormElement.reset();
+  });
+
+// EXAM ENTRY & PERFORMANCE REMARKS: Individual student scoring flow
+let currentStudentId = "";
+
+nextStuInfoBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const nameVal = document.getElementById("studentName").value;
+  const gradeInput = document.getElementById("grade").value;
+  currentStudentId = generateSmartId(
+    nameVal,
+    mapClassToNumber[gradeInput],
+    document.getElementById("term").value,
+    document.getElementById("year").value,
+  );
+
+  const existing = await db.students.get(currentStudentId);
+  if (!existing) return alert(`❌ Student "${nameVal}" is not registered!`);
+
+  const subjects = schoolSubjects[getLevelByGrade(gradeInput)];
+  dynamicSubjectsContainer.innerHTML = "";
+  subjects.forEach((sub) => {
+    const div = document.createElement("div");
+    div.className = "subject-row";
+    div.innerHTML = `<label>${sub.name}</label><input type="number" id="s_${sub.id}_exam" class="exam" placeholder="0-100" min="0" max="100">`;
+    dynamicSubjectsContainer.appendChild(div);
+    document.getElementById(`s_${sub.id}_exam`).value =
+      existing.scores[`s_${sub.id}_exam`] || "";
+  });
+
+  if (existing.performance) {
+    ["attendance", "attitude", "character", "interest", "ct-remarks"].forEach(
+      (id) => {
+        const field = document.getElementById(id);
+        if (field) field.value = existing.performance[id] || "";
+      },
+    );
   }
 
-  subjectScores.creativeArtsSba = Number(creativeArtsSba.value);
-  subjectScores.creativeArtsExam = Number(creativeArtsExam.value);
+  studentForm.classList.add("hidden");
+  examScoresForm.classList.remove("hidden");
+});
 
-  localStorage.setItem("subjectScores", JSON.stringify(subjectScores));
+saveStuBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const existingRecord = await db.students.get(currentStudentId);
+  let updatedScores = { ...existingRecord.scores };
+  const subjects =
+    schoolSubjects[getLevelByGrade(document.getElementById("grade").value)];
 
-  scoresForm.classList.add("hidden");
+  subjects.forEach((sub) => {
+    const input = document.getElementById(`s_${sub.id}_exam`);
+    if (input) updatedScores[`s_${sub.id}_exam`] = input.value;
+  });
+
+  const fullyUpdatedStudent = {
+    ...existingRecord,
+    scores: updatedScores,
+    performance: {
+      attendance: document.getElementById("attendance").value,
+      attitude: document.getElementById("attitude").value,
+      character: document.getElementById("character").value,
+      interest: document.getElementById("interest").value,
+      ctRemarks: document.getElementById("ct-remarks").value,
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  await db.students.put(fullyUpdatedStudent);
+  await syncToCloud(fullyUpdatedStudent);
+  alert(`Done! ${existingRecord.info.name}'s record updated.`);
+});
+
+nextExamScoresFormBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  examScoresForm.classList.add("hidden");
   ovrPerformanceForm.classList.remove("hidden");
 });
 
-/* ================================
-   SAVE STUDENT
-================================ */
-saveStuBtn.addEventListener("click", function (event) {
-  event.preventDefault();
-
-  ovrPerformanceDetails.attendance = attendance.value;
-  ovrPerformanceDetails.attitude = attitude.value;
-  ovrPerformanceDetails.character = character.value;
-  ovrPerformanceDetails.interest = interest.value;
-  ovrPerformanceDetails.ctRemarks = ctRemarks.value;
-
-  const genClassKey = function (studentInfo) {
-    return `B${studentInfo.class}-T${studentInfo.term}-Y${studentInfo.year}`;
-  };
-
-  const classKey = genClassKey(studentInfo);
-  let classDatasets = JSON.parse(localStorage.getItem("classDatasets")) || {};
-  if (!classDatasets[classKey]) classDatasets[classKey] = {};
-
-  // THIS IS THE FUNCTION TO GENERATE THE ID FOR THE STUDENT,
-  // IT TAKES ONLY THE FIRST NAME AND LAST NAME OF THE STUDENT,
-  // AND HANDLES HYPHENATED NAMES PROPERLY
-  const generateStudentId = (fullName) => {
-    if (!fullName) return ""; // safeguard
-
-    // Trim and split on spaces, preserve hyphens
-    const parts = fullName
-      .trim()
-      .split(/\s+/) // split by spaces
-      .filter(Boolean); // remove empty strings
-
-    // Edge case: single name
-    if (parts.length === 1) return parts[0].toLowerCase();
-
-    // Take the first and last elements
-    const firstName = parts[0];
-    const lastName = parts[parts.length - 1];
-
-    // Normalize: lowercase and replace any internal spaces with underscores
-    return `${firstName.toLowerCase().replace(/\s+/g, "_")}_${lastName
-      .toLowerCase()
-      .replace(/\s+/g, "_")}`;
-  };
-
-  // Example usage:
-  const studentId = generateStudentId(studentInfo.name);
-
-  // === CALCULATE TOTALS ===
-  const subjectTotals = {};
-  const subjectGrades = {};
-
-  const subjects = [
-    "english",
-    "mathematics",
-    "science",
-    "history",
-    "rme",
-    "creativeArts",
-  ];
-
-  if (studentInfo.class >= 4) {
-    subjects.push("computing");
-  }
-
-  const coreSubjects = ["english", "mathematics", "science", "history"];
-  const electiveSubjects = subjects.filter((s) => !coreSubjects.includes(s));
-
-  const electiveGrades = [];
-
-  // Compute totals and grades for core subjects
-  coreSubjects.forEach((sub) => {
-    const total = calcSubjectTotals(
-      subjectScores[sub + "Sba"],
-      subjectScores[sub + "Exam"]
-    );
-    subjectTotals[sub] = total;
-    const grade = getGrade(total);
-    subjectGrades[sub] = grade;
-  });
-
-  // Compute totals and grades for electives
-  electiveSubjects.forEach((sub) => {
-    const total = calcSubjectTotals(
-      subjectScores[sub + "Sba"],
-      subjectScores[sub + "Exam"]
-    );
-    subjectTotals[sub] = total;
-    const grade = getGrade(total);
-    subjectGrades[sub] = grade;
-    electiveGrades.push({
-      subject: sub,
-      gradeNum: parseInt(grade.match(/\d+/)[0], 10),
+// REMARKS CLEANER: Strips out reference numbers like (1) or (2) from text fields
+const performanceFields = ["attitude", "character", "interest", "ct-remarks"];
+performanceFields.forEach((id) => {
+  const inputEl = document.getElementById(id);
+  if (inputEl) {
+    inputEl.addEventListener("input", (e) => {
+      e.target.value = e.target.value.replace(/^\(\d+\)\s*/, "");
     });
-  });
-
-  // === AGGREGATE CALCULATION ===
-  let aggregate = 0;
-
-  // Add core grades
-  coreSubjects.forEach((sub) => {
-    aggregate += parseInt(subjectGrades[sub].match(/\d+/)[0], 10);
-  });
-
-  // Pick best 2 electives
-  electiveGrades.sort((a, b) => a.gradeNum - b.gradeNum); // ascending
-
-  const bestElectives = electiveGrades.slice(0, 2);
-
-  bestElectives.forEach((el) => {
-    aggregate += el.gradeNum;
-  });
-
-  // === SAVE STUDENT RECORD ===
-  const studentRecord = {
-    id: studentId,
-    info: studentInfo,
-    scores: subjectScores,
-    totals: subjectTotals,
-    grades: subjectGrades,
-    aggregate: aggregate,
-    performance: ovrPerformanceDetails,
-  };
-
-  classDatasets[classKey][studentId] = studentRecord;
-
-  // === COMPUTE CLASS AVERAGES ===
-  const students = Object.values(classDatasets[classKey]);
-  const totalScores = {};
-  const count = {};
-
-  students.forEach((st) => {
-    // Skip invalid entries like _averages
-    if (!st.totals) return;
-
-    for (const sub of subjects) {
-      if (!totalScores[sub]) {
-        totalScores[sub] = 0;
-        count[sub] = 0;
-      }
-      totalScores[sub] += st.totals[sub];
-      count[sub] += 1;
-    }
-  });
-
-  const averages = {};
-  subjects.forEach((sub) => {
-    averages[sub] =
-      count[sub] > 0 ? Math.round(totalScores[sub] / count[sub]) : 0;
-  });
-
-  classDatasets[classKey]._averages = averages;
-
-  localStorage.setItem("classDatasets", JSON.stringify(classDatasets));
-
-  alert(`Saved: ${studentInfo.name} (Aggregate: ${aggregate})`);
+  }
 });
 
-/* ================================
-   ENTER NEXT STUDENT
-================================ */
-nextStudentBtn.addEventListener("click", function () {
-  studentForm.reset();
-  scoresForm.reset();
-  ovrPerformanceForm.reset();
+const goBackToHomePageFromOvrPerformance = document.getElementById(
+  "goBackToHomePageFromOvrPerformance",
+);
+if (goBackToHomePageFromOvrPerformance) {
+  goBackToHomePageFromOvrPerformance.addEventListener("click", () => {
+    [studentForm, examScoresForm, ovrPerformanceForm].forEach((f) => f.reset());
+    ovrPerformanceForm.classList.add("hidden");
+    activityBox.classList.remove("hidden");
+  });
+}
 
+nextStudentBtn.addEventListener("click", () => {
+  [studentForm, examScoresForm, ovrPerformanceForm].forEach((f) => f.reset());
+  currentStudentId = "";
   studentForm.classList.remove("hidden");
-  scoresForm.classList.add("hidden");
+  examScoresForm.classList.add("hidden");
   ovrPerformanceForm.classList.add("hidden");
-
-  nextStuInfoBtn.disabled = true;
-  saveStuBtn.disabled = true;
-  nextStudentBtn.disabled = true;
-  genRepCardBtn.disabled = true;
-  nextScoresFormBtn.disabled = true;
-
-  for (const key in subjectScores) delete subjectScores[key];
-  for (const key in ovrPerformanceDetails) delete ovrPerformanceDetails[key];
-
   alert("Ready for the next student.");
 });
 
-/* ================================
-   GENERATE REPORT CARD
-================================ */
-genRepCardBtn.addEventListener("click", function (event) {
-  event.preventDefault();
+// REPORT CARDS & DIRECTORY: Functions to view student lists or select a student for PDF generation
+genRepCardBtn.addEventListener("click", async () => {
+  const allMasterData = await db.master_records.toArray();
+  if (allMasterData.length === 0)
+    return alert("Please Sync Master Vault first.");
 
-  // Load datasets
-  const classDatasets = JSON.parse(localStorage.getItem("classDatasets")) || {};
-
-  // Clear dropdown and add placeholder
-  studentDropdown.innerHTML = '<option value="">-- Select Student --</option>';
-
-  // ✅ Loop through ALL classes
-  const classKeys = Object.keys(classDatasets);
-  for (let i = 0; i < classKeys.length; i++) {
-    const classKey = classKeys[i];
-    const students = classDatasets[classKey];
-    const studentIds = Object.keys(students);
-
-    // ✅ Loop through ALL students in this class
-    for (let j = 0; j < studentIds.length; j++) {
-      const studentId = studentIds[j];
-      if (studentId.startsWith("_")) continue; // skip averages
-
-      const stu = students[studentId];
-
-      const option = document.createElement("option");
-      option.value = `${classKey}::${studentId}`; // store both values
-      option.textContent = `${stu.info.name} (Basic ${stu.info.class}, Term ${stu.info.term}, ${stu.info.year})`;
-
-      studentDropdown.appendChild(option);
-    }
-  }
-
-  if (studentDropdown.options.length === 1) {
-    alert("⚠️ No students saved yet.");
-    return;
-  }
-
+  studentDropdown.innerHTML =
+    '<option value="">-- Select Student (Official Vault) --</option>';
+  allMasterData
+    .sort((a, b) => a.info.name.localeCompare(b.info.name))
+    .forEach((stu) => {
+      const opt = document.createElement("option");
+      opt.value = `${stu.classKey}::${stu.id}`;
+      opt.textContent = `${stu.info.name} (${stu.info.class})`;
+      studentDropdown.appendChild(opt);
+    });
   studentDropdown.classList.remove("hidden");
-
-  // Listen for selection
-  studentDropdown.addEventListener("change", function () {
-    if (this.value) {
-      const parts = this.value.split("::");
-      const classKey = parts[0];
-      const studentId = parts[1];
-
-      window.location.href = `rcPdfSheet/RC-F-B.html?classKey=${classKey}&studentId=${studentId}`;
-    }
-  });
 });
+
+studentDropdown.addEventListener("change", function () {
+  if (this.value) {
+    const [ck, sid] = this.value.split("::");
+    window.location.href = `rcPdfSheet/RC-F-B.html?classKey=${ck}&studentId=${sid}`;
+  }
+});
+
+const viewStudentsBtn = document.getElementById("view-students-btn");
+const viewAllStudents = async () => {
+  const allStudents = await db.students.toArray();
+  if (allStudents.length === 0) return alert("Your list is empty.");
+  allStudents.sort((a, b) => a.info.name.localeCompare(b.info.name));
+  const grouped = {};
+  allStudents.forEach((s) => {
+    if (!grouped[s.classKey]) grouped[s.classKey] = [];
+    grouped[s.classKey].push(`${s.info.name} : ${s.id}`);
+  });
+  let message = "📋 Student Directory (By Class)\n\n";
+  Object.keys(grouped)
+    .sort()
+    .forEach((classKey) => {
+      message += `${classKey} : {\n`;
+      grouped[classKey].forEach(
+        (entry, i) => (message += `   ${i + 1}. ${entry}\n`),
+      );
+      message += `}\n\n`;
+    });
+  alert(message);
+};
+
+if (viewStudentsBtn) viewStudentsBtn.onclick = viewAllStudents;
