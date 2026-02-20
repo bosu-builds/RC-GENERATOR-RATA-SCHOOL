@@ -511,26 +511,65 @@ studentDropdown.addEventListener("change", function () {
 });
 
 const viewStudentsBtn = document.getElementById("view-students-btn");
+
+// const viewAllStudents = async () => {
+//   const allStudents = await db.students.toArray();
+//   if (allStudents.length === 0) return alert("Your list is empty.");
+//   allStudents.sort((a, b) => a.info.name.localeCompare(b.info.name));
+//   const grouped = {};
+//   allStudents.forEach((s) => {
+//     if (!grouped[s.classKey]) grouped[s.classKey] = [];
+//     grouped[s.classKey].push(`${s.info.name} : ${s.id}`);
+//   });
+//   let message = "📋 Student Directory (By Class)\n\n";
+//   Object.keys(grouped)
+//     .sort()
+//     .forEach((classKey) => {
+//       message += `${classKey} : {\n`;
+//       grouped[classKey].forEach(
+//         (entry, i) => (message += `   ${i + 1}. ${entry}\n`),
+//       );
+//       message += `}\n\n`;
+//     });
+//   alert(message);
+// };
+
 const viewAllStudents = async () => {
-  const allStudents = await db.students.toArray();
-  if (allStudents.length === 0) return alert("Your list is empty.");
-  allStudents.sort((a, b) => a.info.name.localeCompare(b.info.name));
-  const grouped = {};
-  allStudents.forEach((s) => {
-    if (!grouped[s.classKey]) grouped[s.classKey] = [];
-    grouped[s.classKey].push(`${s.info.name} : ${s.id}`);
-  });
-  let message = "📋 Student Directory (By Class)\n\n";
-  Object.keys(grouped)
-    .sort()
-    .forEach((classKey) => {
-      message += `${classKey} : {\n`;
+  if (!_supabase) return alert("Supabase not initialized.");
+
+  try {
+    // 1. Fetch the latest list directly from the Cloud
+    const { data, error } = await _supabase
+      .from("students_sync")
+      .select("student_name, class_key, id")
+      .order("class_key", { ascending: true });
+
+    if (error) throw error;
+    if (data.length === 0) return alert("The Cloud database is empty.");
+
+    // 2. Group students by Class for a clean display
+    const grouped = {};
+    data.forEach((row) => {
+      const classKey = row.class_key;
+      if (!grouped[classKey]) grouped[classKey] = [];
+      grouped[classKey].push(`${row.student_name} : ${row.id}`);
+    });
+
+    // 3. Build the display message
+    let message = "☁️ GLOBAL Student Directory (Live from Cloud)\n\n";
+    Object.keys(grouped).forEach((classKey) => {
+      message += `📂 ${classKey} : {\n`;
       grouped[classKey].forEach(
         (entry, i) => (message += `   ${i + 1}. ${entry}\n`),
       );
       message += `}\n\n`;
     });
-  alert(message);
+
+    alert(message);
+  } catch (err) {
+    console.error("Fetch failed:", err);
+    alert("❌ Could not fetch global list. Check your internet connection.");
+  }
 };
 
 if (viewStudentsBtn) viewStudentsBtn.onclick = viewAllStudents;
