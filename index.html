@@ -100,15 +100,8 @@
         required
       />
       <datalist id="subjectOptions">
-        It should auto pull the subjects in this cohort since the year,class and
-        term has been entered
-        <!-- <option value="English Language"></option>
-        <option value="Mathematics"></option>
-        <option value="Science"></option>
-        <option value="History"></option>
-        <option value="Computing"></option>
-        <option value="Religious & Moral Education"></option>
-        <option value="Creative Arts"></option> -->
+        <!-- I will auto pull the subjects in this cohort-(Specific Class).
+        since the year,class and term will be entered by then... -->
       </datalist>
 
       <label for="assignment-type">Assignment Type:</label>
@@ -202,6 +195,15 @@
     </form>
 
     <form id="ovrPerformance" class="hidden">
+      <label for="con">Contribution Score (CON):</label>
+      <input
+        type="number"
+        id="con"
+        placeholder="0-5"
+        min="0"
+        max="5"
+        required
+      />
       <label for="attendance">Attendance:</label>
       <input type="number" id="attendance" required />
 

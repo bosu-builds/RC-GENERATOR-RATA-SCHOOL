@@ -7,49 +7,66 @@ const _supabase = window.supabase
   ? window.supabase.createClient(supabaseUrl, supabaseKey)
   : null;
 
-// CLOUD SYNC ENGINE: Merges local data with cloud data to prevent overwriting other teachers' work
-const syncToCloud = async (localStudent) => {
-  if (!_supabase) return console.warn("Supabase not initialized.");
-  if (!navigator.onLine)
-    return console.warn("⚠️ Device offline. Local save only.");
+// DATABASE SETUP
+const db = new Dexie("RataSchoolDB");
+db.version(3).stores({
+  master_records: "id, classKey",
+});
 
+// MASTER VAULT SYNC
+const syncMasterVault = async (silent = false) => {
+  if (!_supabase) {
+    if (!silent) alert("Supabase not initialized.");
+    return;
+  }
   try {
-    // 1. Check if this student already exists in the cloud
-    const { data: cloudEntry, error: fetchError } = await _supabase
+    const { data, error } = await _supabase
+      .from("students_sync")
+      .select("data");
+    if (error) throw error;
+    await db.master_records.clear();
+    const officialRecords = data.map((row) => row.data);
+    await db.master_records.bulkPut(officialRecords);
+    if (!silent) alert(`✅ VAULT UPDATED: ${data.length} records synced.`);
+  } catch (err) {
+    if (!silent) alert("❌ Vault sync failed.");
+  }
+};
+
+window.onload = () => syncMasterVault(true);
+
+// CLOUD-DIRECT SAVE ENGINE
+const saveToCloudDirect = async (studentData) => {
+  if (!_supabase) return alert("Supabase not initialized.");
+  if (!navigator.onLine) return alert("⚠️ Device offline.");
+  try {
+    const { data: cloudEntry } = await _supabase
       .from("students_sync")
       .select("data")
-      .eq("id", localStudent.id)
+      .eq("id", studentData.id)
       .maybeSingle();
 
-    let finalData = localStudent;
-
-    // 2. SMART MERGE: If cloud data exists, combine it with local data
-    // This ensures that if Teacher A enters Math and Teacher B enters English, both are saved.
+    let finalData = studentData;
     if (cloudEntry && cloudEntry.data) {
       const cloudStudent = cloudEntry.data;
       finalData = {
         ...cloudStudent,
-        ...localStudent,
+        ...studentData,
         scores: {
           ...(cloudStudent.scores || {}),
-          ...(localStudent.scores || {}),
+          ...(studentData.scores || {}),
         },
         performance: {
           ...(cloudStudent.performance || {}),
-          ...(localStudent.performance || {}),
+          ...(studentData.performance || {}),
         },
         granularScores: {
           ...(cloudStudent.granularScores || {}),
-          ...(localStudent.granularScores || {}),
+          ...(studentData.granularScores || {}),
         },
         updatedAt: new Date().toISOString(),
       };
     }
-
-    // 3. Update the local Dexie database with the merged version
-    await db.students.put(finalData);
-
-    // 4. Push the final merged record back to the cloud
     const { error: upsertError } = await _supabase
       .from("students_sync")
       .upsert({
@@ -59,118 +76,56 @@ const syncToCloud = async (localStudent) => {
         data: finalData,
         updated_at: finalData.updatedAt,
       });
-
     if (upsertError) throw upsertError;
-    console.log(`☁️ Smart Sync Success: ${finalData.info.name}`);
+    await db.master_records.put(finalData);
+    return true;
   } catch (err) {
-    console.error("❌ Cloud Sync Failed:", err.message);
+    alert("❌ Save failed.");
+    return false;
   }
 };
 
-// MASTER VAULT SYNC: Downloads everything from the cloud to the official records for printing
-const syncMasterVault = async () => {
-  if (!_supabase) return alert("Supabase not initialized.");
-  try {
-    const { data, error } = await _supabase
-      .from("students_sync")
-      .select("data");
-    if (error) throw error;
-
-    await db.master_records.clear();
-    const officialRecords = data.map((row) => row.data);
-    await db.master_records.bulkPut(officialRecords);
-
-    alert(
-      `✅ VAULT UPDATED: ${data.length} student records synced from the cloud.`,
-    );
-  } catch (err) {
-    alert("❌ Vault sync failed. Check your internet connection.");
-  }
-};
-
-// HELPER FUNCTIONS: Date formatting and ID generation
-const formatPolishedDate = (isoString) => {
-  if (!isoString) return "None (First Save)";
-  const date = new Date(isoString);
-  let hours = date.getHours();
-  let minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "pm" : "am";
-  hours = hours % 12 || 12;
-  const strTime = `${hours}:${minutes < 10 ? "0" + minutes : minutes} ${ampm}`;
-  const day = date.getDate();
-  let suffix = "th";
-  if (day % 10 === 1 && day !== 11) suffix = "st";
-  else if (day % 10 === 2 && day !== 12) suffix = "nd";
-  else if (day % 10 === 3 && day !== 13) suffix = "rd";
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  return `${strTime} ${day}${suffix} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-};
-
-const generateSmartId = (name, cNum, term, year) => {
-  const parts = name.trim().toLowerCase().split(/\s+/);
-  return `${parts[0]}_${parts[parts.length - 1]}_b${cNum}_t${term}_${year}`;
-};
-
-// DATABASE SETUP: Dexie DB configuration and school subject lists
-const db = new Dexie("RataSchoolDB");
-db.version(2).stores({
-  students: "id, classKey",
-  master_records: "id, classKey",
-});
-
+// DATA STRUCTURES
 const schoolSubjects = {
   KG: [
-    { id: 101, name: "Literacy" },
-    { id: 102, name: "Listening" },
-    { id: 103, name: "Vocabulary" },
-    { id: 104, name: "Alphabet" },
-    { id: 105, name: "Phonics" },
-    { id: 106, name: "Writing" },
-    { id: 107, name: "Numeracy" },
-    { id: 301, name: "Creative Arts" },
-    { id: 108, name: "Print" },
-    { id: 109, name: "Nature Science" },
+    { id: 101, name: "Literacy", code: "Lit" },
+    { id: 102, name: "Listening", code: "Lst" },
+    { id: 103, name: "Vocabulary", code: "Voc" },
+    { id: 104, name: "Alphabet", code: "Alph" },
+    { id: 105, name: "Phonics", code: "Phon" },
+    { id: 106, name: "Writing", code: "Wri" },
+    { id: 107, name: "Numeracy", code: "Num" },
+    { id: 301, name: "Creative Arts", code: "CA" },
+    { id: 108, name: "Print", code: "Prnt" },
+    { id: 109, name: "Nature Science", code: "NatSci" },
   ],
   "Lower Primary": [
-    { id: 201, name: "English" },
-    { id: 202, name: "Maths" },
-    { id: 203, name: "Science" },
-    { id: 205, name: "RME" },
-    { id: 301, name: "Creative Arts" },
-    { id: 204, name: "History" },
+    { id: 201, name: "English", code: "Eng" },
+    { id: 202, name: "Maths", code: "Math" },
+    { id: 203, name: "Science", code: "Sci" },
+    { id: 205, name: "RME", code: "RME" },
+    { id: 301, name: "Creative Arts", code: "CA" },
+    { id: 204, name: "History", code: "Hist" },
   ],
   "Upper Primary": [
-    { id: 201, name: "English" },
-    { id: 202, name: "Maths" },
-    { id: 203, name: "Science" },
-    { id: 204, name: "History" },
-    { id: 302, name: "Computing" },
-    { id: 205, name: "RME" },
-    { id: 301, name: "Creative Arts" },
+    { id: 201, name: "English", code: "Eng" },
+    { id: 202, name: "Maths", code: "Math" },
+    { id: 203, name: "Science", code: "Sci" },
+    { id: 204, name: "History", code: "Hist" },
+    { id: 302, name: "Computing", code: "Comp" },
+    { id: 205, name: "RME", code: "RME" },
+    { id: 301, name: "Creative Arts", code: "CA" },
   ],
   JHS: [
-    { id: 201, name: "English" },
-    { id: 202, name: "Maths" },
-    { id: 203, name: "Science" },
-    { id: 206, name: "Social Studies" },
-    { id: 304, name: "Career Tech" },
-    { id: 205, name: "RME" },
-    { id: 302, name: "Computing" },
-    { id: 303, name: "Creative Arts" },
-    { id: 401, name: "Twi" },
+    { id: 201, name: "English", code: "Eng" },
+    { id: 202, name: "Maths", code: "Math" },
+    { id: 203, name: "Science", code: "Sci" },
+    { id: 206, name: "Social Studies", code: "Soc" },
+    { id: 304, name: "Career Tech", code: "CTech" },
+    { id: 205, name: "RME", code: "RME" },
+    { id: 302, name: "Computing", code: "Comp" },
+    { id: 303, name: "Creative Arts", code: "CA" },
+    { id: 401, name: "Twi", code: "Twi" },
   ],
 };
 
@@ -197,7 +152,12 @@ const getLevelByGrade = (gradeValue) => {
   return null;
 };
 
-// UI ELEMENTS: References to DOM containers and buttons
+const generateSmartId = (name, cNum, term, year) => {
+  const parts = name.trim().toLowerCase().split(/\s+/);
+  return `${parts[0]}_${parts[parts.length - 1]}_b${cNum}_t${term}_${year}`;
+};
+
+// UI ELEMENTS & NAVIGATION
 const activityBox = document.getElementById("activity-box");
 const studentForm = document.getElementById("studentForm");
 const examScoresForm = document.getElementById("examScoresForm");
@@ -222,27 +182,9 @@ const gradingContainer = document.getElementById("grading-container");
 const studentListBody = document.getElementById("student-list-body");
 const syncVaultBtn = document.getElementById("syncVaultBtn");
 
-if (syncVaultBtn) syncVaultBtn.addEventListener("click", syncMasterVault);
+if (syncVaultBtn)
+  syncVaultBtn.addEventListener("click", () => syncMasterVault(false));
 
-// INPUT VALIDATION: Keeps scores within allowed ranges (0-100 or 0-Max)
-studentListBody.addEventListener("input", (e) => {
-  if (e.target.classList.contains("grading-score-input")) {
-    const input = e.target;
-    const max = parseFloat(input.getAttribute("max")) || 100;
-    const val = parseFloat(input.value);
-    if (input.value !== "" && (val > max || val < 0)) input.value = "";
-  }
-});
-
-dynamicSubjectsContainer.addEventListener("input", (e) => {
-  if (e.target.classList.contains("exam")) {
-    const input = e.target;
-    const val = parseFloat(input.value);
-    if (input.value !== "" && (val > 100 || val < 0)) input.value = "";
-  }
-});
-
-// NAVIGATION HANDLERS: Controlling which forms are visible
 [
   addStudentForm,
   assignmentForm,
@@ -264,45 +206,7 @@ activityExam.addEventListener("click", () => {
   studentForm.classList.remove("hidden");
 });
 
-// STUDENT REGISTRATION: Creates a new student record and pushes to cloud
-const saveNewStudentBtn = document.getElementById("saveNewStudentBtn");
-saveNewStudentBtn.addEventListener("click", async (e) => {
-  e.preventDefault();
-  const name = document.getElementById("new-student-name").value;
-  const gradeVal = document.getElementById("new-grade").value;
-  if (!name || !gradeVal) return alert("Fill all fields");
-
-  const cNum = mapClassToNumber[gradeVal] || gradeVal;
-  const term = document.getElementById("new-term").value;
-  const year = document.getElementById("new-year").value;
-  const id = generateSmartId(name, cNum, term, year);
-
-  const newStudentData = {
-    id,
-    classKey: `B${cNum}-T${term}-Y${year}`,
-    info: { name, class: cNum, term, year },
-    scores: {},
-    performance: {},
-    updatedAt: new Date().toISOString(),
-  };
-
-  await db.students.put(newStudentData);
-  await syncToCloud(newStudentData);
-  alert("Student Added!");
-  addStudentForm.reset();
-});
-
-const goBackToHomePageFromAddStudent = document.getElementById(
-  "goBackToHomePageFromAddStudent",
-);
-if (goBackToHomePageFromAddStudent) {
-  goBackToHomePageFromAddStudent.addEventListener("click", () => {
-    activityBox.classList.remove("hidden");
-    addStudentForm.classList.add("hidden");
-  });
-}
-
-// SBA & ASSIGNMENT GRADING: Bulk entry for class assignments/classwork
+// SBA GRADING LOGIC (Gatekeeper)
 assignmentGrade.addEventListener("input", () => {
   const level = getLevelByGrade(assignmentGrade.value);
   subjectOptions.innerHTML = "";
@@ -322,117 +226,139 @@ assignmentFormElement.addEventListener("submit", async (e) => {
   const grade = assignmentGrade.value;
   const term = document.getElementById("assignment-term").value;
   const max = document.getElementById("assignment-max").value || 100;
+  const subjectName = document.getElementById("assignment-subject").value;
+  const typeFull = document.getElementById("assignment-type").value; // e.g. "Class Exercise (CE)"
+  const num = document.getElementById("assignment-number").value;
+
+  const level = getLevelByGrade(grade);
+  const subObj = schoolSubjects[level].find((s) => s.name === subjectName);
+  const subCode = subObj ? subObj.code : subjectName.substring(0, 3);
+
+  // --- NEW: ABBREVIATION LOGIC ---
+  // This looks for the text inside ( ) brackets
+  const typeMatch = typeFull.match(/\(([^)]+)\)/);
+  const typeCode = typeMatch ? typeMatch[1] : typeFull.substring(0, 3);
+  // -------------------------------
 
   const cNum = mapClassToNumber[grade] || grade;
   const targetClassKey = `B${cNum}-T${term}-Y${year}`;
 
-  const cohort = await db.students
+  // Clean ID: Eng-CE1-B4-T2-Y2026
+  const assignmentId = `${subCode}-${typeCode}${num}-${targetClassKey}`;
+
+  const cohort = await db.master_records
     .where("classKey")
     .equals(targetClassKey)
     .toArray();
-  if (cohort.length === 0)
-    return alert("No students found. Register students first.");
+
+  if (cohort.length === 0) return alert("No students found. Sync Vault.");
+
+  const exists = cohort.some((s) =>
+    s.granularScores?.[subjectName]?.some(
+      (i) => i.assignmentId === assignmentId,
+    ),
+  );
+  if (exists) return alert(`🚫 Duplicate Assignment ID!`);
 
   studentListBody.innerHTML = "";
   cohort.forEach((stu) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${stu.info.name}</td><td><input type="number" class="grading-score-input" data-student-id="${stu.id}" min="0" max="${max}" placeholder="0-${max}"></td>`;
+    // The input stores the CLEAN assignmentId in its data attribute
+    tr.innerHTML = `<td>${stu.info.name}</td><td><input type="number" class="grading-score-input" data-student-id="${stu.id}" data-assignment-id="${assignmentId}" min="0" max="${max}" placeholder="0-${max}"></td>`;
     studentListBody.appendChild(tr);
   });
 
   document.getElementById("grading-title").innerText =
-    `Grading: ${document.getElementById("assignment-subject").value}`;
+    `Grading: ${subjectName}`;
   assignmentFormElement.classList.add("hidden");
   gradingContainer.classList.remove("hidden");
 });
 
-document
-  .getElementById("save-scores-btn")
-  .addEventListener("click", async () => {
-    const inputs = document.querySelectorAll(".grading-score-input");
-    const subject = document.getElementById("assignment-subject").value;
-    const typeKey = `${document.getElementById("assignment-type").value}_${document.getElementById("assignment-number").value}`;
-
-    for (const input of inputs) {
-      const student = await db.students.get(input.dataset.studentId);
-      if (student) {
-        if (!student.granularScores) student.granularScores = {};
-        if (!student.granularScores[subject])
-          student.granularScores[subject] = [];
-        student.granularScores[subject].push({
-          type: typeKey,
-          score: input.value,
-          max: document.getElementById("assignment-max").value,
-          date: document.getElementById("assignment-date").value,
-          updatedAt: new Date().toISOString(),
-        });
-        await db.students.put(student);
-        await syncToCloud(student);
-      }
+const saveAssignmentScoresBtn = document.getElementById("save-scores-btn");
+saveAssignmentScoresBtn.addEventListener("click", async () => {
+  const inputs = document.querySelectorAll(".grading-score-input");
+  const subject = document.getElementById("assignment-subject").value;
+  const typeKey = `${document.getElementById("assignment-type").value}_${document.getElementById("assignment-number").value}`;
+  const syncPromises = Array.from(inputs).map(async (input) => {
+    if (input.value === "") return;
+    const student = await db.master_records.get(input.dataset.studentId);
+    if (student) {
+      if (!student.granularScores) student.granularScores = {};
+      if (!student.granularScores[subject])
+        student.granularScores[subject] = [];
+      student.granularScores[subject].push({
+        assignmentId: input.dataset.assignmentId,
+        type: typeKey,
+        score: input.value,
+        max: document.getElementById("assignment-max").value || 100,
+        date: document.getElementById("assignment-date").value,
+        updatedAt: new Date().toISOString(),
+      });
+      await saveToCloudDirect(student);
     }
-    alert("Scores saved!");
-    gradingContainer.classList.add("hidden");
-    activityBox.classList.remove("hidden");
-    assignmentFormElement.reset();
   });
+  await Promise.all(syncPromises);
+  alert("SBA Saved!");
+  gradingContainer.classList.add("hidden");
+  activityBox.classList.remove("hidden");
+});
 
-// EXAM ENTRY & PERFORMANCE REMARKS: Individual student scoring flow
-let currentStudentId = "";
-
+// EXAM & PERFORMANCE LOGIC
 nextStuInfoBtn.addEventListener("click", async (e) => {
   e.preventDefault();
-  const nameVal = document.getElementById("studentName").value;
-  const gradeInput = document.getElementById("grade").value;
-  currentStudentId = generateSmartId(
-    nameVal,
-    mapClassToNumber[gradeInput],
+  const name = document.getElementById("studentName").value;
+  const grade = document.getElementById("grade").value;
+  const id = generateSmartId(
+    name,
+    mapClassToNumber[grade],
     document.getElementById("term").value,
     document.getElementById("year").value,
   );
+  currentStudentId = id;
 
-  const existing = await db.students.get(currentStudentId);
-  if (!existing) return alert(`❌ Student "${nameVal}" is not registered!`);
+  const existing = await db.master_records.get(id);
+  if (!existing) return alert("Register student first.");
 
-  const subjects = schoolSubjects[getLevelByGrade(gradeInput)];
+  const level = getLevelByGrade(grade);
   dynamicSubjectsContainer.innerHTML = "";
-  subjects.forEach((sub) => {
+  schoolSubjects[level].forEach((sub) => {
     const div = document.createElement("div");
     div.className = "subject-row";
-    div.innerHTML = `<label>${sub.name}</label><input type="number" id="s_${sub.id}_exam" class="exam" placeholder="0-100" min="0" max="100">`;
+    div.innerHTML = `<label>${sub.name}</label><input type="number" id="s_${sub.id}_exam" class="exam" value="${existing.scores[`s_${sub.id}_exam`] || ""}">`;
     dynamicSubjectsContainer.appendChild(div);
-    document.getElementById(`s_${sub.id}_exam`).value =
-      existing.scores[`s_${sub.id}_exam`] || "";
   });
 
   if (existing.performance) {
-    ["attendance", "attitude", "character", "interest", "ct-remarks"].forEach(
-      (id) => {
-        const field = document.getElementById(id);
-        if (field) field.value = existing.performance[id] || "";
-      },
-    );
+    [
+      "attendance",
+      "attitude",
+      "character",
+      "interest",
+      "ct-remarks",
+      "con",
+    ].forEach((f) => {
+      const el = document.getElementById(f);
+      if (el) el.value = existing.performance[f] || "";
+    });
   }
-
   studentForm.classList.add("hidden");
   examScoresForm.classList.remove("hidden");
 });
 
 saveStuBtn.addEventListener("click", async (e) => {
   e.preventDefault();
-  const existingRecord = await db.students.get(currentStudentId);
-  let updatedScores = { ...existingRecord.scores };
-  const subjects =
-    schoolSubjects[getLevelByGrade(document.getElementById("grade").value)];
-
-  subjects.forEach((sub) => {
+  const existing = await db.master_records.get(currentStudentId);
+  let scores = { ...existing.scores };
+  const grade = document.getElementById("grade").value;
+  schoolSubjects[getLevelByGrade(grade)].forEach((sub) => {
     const input = document.getElementById(`s_${sub.id}_exam`);
-    if (input) updatedScores[`s_${sub.id}_exam`] = input.value;
+    if (input) scores[`s_${sub.id}_exam`] = input.value;
   });
-
-  const fullyUpdatedStudent = {
-    ...existingRecord,
-    scores: updatedScores,
+  const updated = {
+    ...existing,
+    scores,
     performance: {
+      con: document.getElementById("con")?.value || "",
       attendance: document.getElementById("attendance").value,
       attitude: document.getElementById("attitude").value,
       character: document.getElementById("character").value,
@@ -441,63 +367,50 @@ saveStuBtn.addEventListener("click", async (e) => {
     },
     updatedAt: new Date().toISOString(),
   };
-
-  await db.students.put(fullyUpdatedStudent);
-  await syncToCloud(fullyUpdatedStudent);
-  alert(`Done! ${existingRecord.info.name}'s record updated.`);
+  if (await saveToCloudDirect(updated)) alert("Exam/Performance Saved!");
 });
 
-nextExamScoresFormBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  examScoresForm.classList.add("hidden");
-  ovrPerformanceForm.classList.remove("hidden");
-});
+// DIRECTORY & PDF LOGIC
+const viewStudentsBtn = document.getElementById("view-students-btn");
+const viewAllStudents = async () => {
+  if (!_supabase) return alert("Supabase not initialized.");
+  try {
+    const { data, error } = await _supabase
+      .from("students_sync")
+      .select("student_name, class_key, id")
+      .order("class_key", { ascending: true });
+    if (error) throw error;
+    if (data.length === 0) return alert("Cloud is empty.");
 
-// REMARKS CLEANER: Strips out reference numbers like (1) or (2) from text fields
-const performanceFields = ["attitude", "character", "interest", "ct-remarks"];
-performanceFields.forEach((id) => {
-  const inputEl = document.getElementById(id);
-  if (inputEl) {
-    inputEl.addEventListener("input", (e) => {
-      e.target.value = e.target.value.replace(/^\(\d+\)\s*/, "");
+    const grouped = {};
+    data.forEach((row) => {
+      if (!grouped[row.class_key]) grouped[row.class_key] = [];
+      grouped[row.class_key].push(`${row.student_name} : ${row.id}`);
     });
+
+    let message = "☁️ GLOBAL Student Directory (Live from Cloud)\n\n";
+    Object.keys(grouped).forEach((ck) => {
+      message += `📂 ${ck} : {\n`;
+      grouped[ck].forEach((entry, i) => (message += `   ${i + 1}. ${entry}\n`));
+      message += `}\n\n`;
+    });
+    alert(message);
+  } catch (err) {
+    alert("❌ Directory fetch failed.");
   }
-});
+};
 
-const goBackToHomePageFromOvrPerformance = document.getElementById(
-  "goBackToHomePageFromOvrPerformance",
-);
-if (goBackToHomePageFromOvrPerformance) {
-  goBackToHomePageFromOvrPerformance.addEventListener("click", () => {
-    [studentForm, examScoresForm, ovrPerformanceForm].forEach((f) => f.reset());
-    ovrPerformanceForm.classList.add("hidden");
-    activityBox.classList.remove("hidden");
-  });
-}
+if (viewStudentsBtn) viewStudentsBtn.onclick = viewAllStudents;
 
-nextStudentBtn.addEventListener("click", () => {
-  [studentForm, examScoresForm, ovrPerformanceForm].forEach((f) => f.reset());
-  currentStudentId = "";
-  studentForm.classList.remove("hidden");
-  examScoresForm.classList.add("hidden");
-  ovrPerformanceForm.classList.add("hidden");
-  alert("Ready for the next student.");
-});
-
-// REPORT CARDS & DIRECTORY: Functions to view student lists or select a student for PDF generation
 genRepCardBtn.addEventListener("click", async () => {
-  const allMasterData = await db.master_records.toArray();
-  if (allMasterData.length === 0)
-    return alert("Please Sync Master Vault first.");
-
-  studentDropdown.innerHTML =
-    '<option value="">-- Select Student (Official Vault) --</option>';
-  allMasterData
+  const data = await db.master_records.toArray();
+  studentDropdown.innerHTML = '<option value="">-- Select Student --</option>';
+  data
     .sort((a, b) => a.info.name.localeCompare(b.info.name))
-    .forEach((stu) => {
+    .forEach((s) => {
       const opt = document.createElement("option");
-      opt.value = `${stu.classKey}::${stu.id}`;
-      opt.textContent = `${stu.info.name} (${stu.info.class})`;
+      opt.value = `${s.classKey}::${s.id}`;
+      opt.textContent = `${s.info.name} (${s.info.class})`;
       studentDropdown.appendChild(opt);
     });
   studentDropdown.classList.remove("hidden");
@@ -509,67 +422,3 @@ studentDropdown.addEventListener("change", function () {
     window.location.href = `rcPdfSheet/RC-F-B.html?classKey=${ck}&studentId=${sid}`;
   }
 });
-
-const viewStudentsBtn = document.getElementById("view-students-btn");
-
-// const viewAllStudents = async () => {
-//   const allStudents = await db.students.toArray();
-//   if (allStudents.length === 0) return alert("Your list is empty.");
-//   allStudents.sort((a, b) => a.info.name.localeCompare(b.info.name));
-//   const grouped = {};
-//   allStudents.forEach((s) => {
-//     if (!grouped[s.classKey]) grouped[s.classKey] = [];
-//     grouped[s.classKey].push(`${s.info.name} : ${s.id}`);
-//   });
-//   let message = "📋 Student Directory (By Class)\n\n";
-//   Object.keys(grouped)
-//     .sort()
-//     .forEach((classKey) => {
-//       message += `${classKey} : {\n`;
-//       grouped[classKey].forEach(
-//         (entry, i) => (message += `   ${i + 1}. ${entry}\n`),
-//       );
-//       message += `}\n\n`;
-//     });
-//   alert(message);
-// };
-
-const viewAllStudents = async () => {
-  if (!_supabase) return alert("Supabase not initialized.");
-
-  try {
-    // 1. Fetch the latest list directly from the Cloud
-    const { data, error } = await _supabase
-      .from("students_sync")
-      .select("student_name, class_key, id")
-      .order("class_key", { ascending: true });
-
-    if (error) throw error;
-    if (data.length === 0) return alert("The Cloud database is empty.");
-
-    // 2. Group students by Class for a clean display
-    const grouped = {};
-    data.forEach((row) => {
-      const classKey = row.class_key;
-      if (!grouped[classKey]) grouped[classKey] = [];
-      grouped[classKey].push(`${row.student_name} : ${row.id}`);
-    });
-
-    // 3. Build the display message
-    let message = "☁️ GLOBAL Student Directory (Live from Cloud)\n\n";
-    Object.keys(grouped).forEach((classKey) => {
-      message += `📂 ${classKey} : {\n`;
-      grouped[classKey].forEach(
-        (entry, i) => (message += `   ${i + 1}. ${entry}\n`),
-      );
-      message += `}\n\n`;
-    });
-
-    alert(message);
-  } catch (err) {
-    console.error("Fetch failed:", err);
-    alert("❌ Could not fetch global list. Check your internet connection.");
-  }
-};
-
-if (viewStudentsBtn) viewStudentsBtn.onclick = viewAllStudents;
