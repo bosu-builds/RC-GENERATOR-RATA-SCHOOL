@@ -1,4 +1,4 @@
-/* 1. GLOBAL LAYOUT */
+/*  GLOBAL LAYOUT */
 body {
   font-family: "Inter", Arial, sans-serif;
   background-color: #f4f7f6;
@@ -16,7 +16,7 @@ h2 {
   color: #2c3e50;
 }
 
-/* 2. THE "GLUE" (Visibility) */
+/* Visibility */
 .hidden {
   /* This forces the element to hide regardless of layout mode, And this is how i want to be actually */
   display: none !important;
@@ -118,9 +118,8 @@ button:hover {
   transform: translateY(0px);
 }
 
-/* ================================
-   6. UTILITIES
-================================ */
+/* 6. UTILITIES */
+
 #saveStudentBtn,
 #nextStudentBtn {
   margin-bottom: 15px;
@@ -180,4 +179,128 @@ button:hover {
   margin: 0; /* Override global input margin */
   text-align: center;
   font-weight: bold;
+}
+
+/* Timestamp styling  */
+
+.score-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.update-ts {
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* MOBILE RESPONSIVENESS (Below 768px) */
+
+@media screen and (max-width: 767px) {
+  body {
+    padding: 10px;
+    align-items: stretch;
+    overflow-x: hidden; /* Hard stop for horizontal scrolling */
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin-top: 10px;
+    text-align: center; /* Centers the text inside the stretched block */
+    width: 100%; /* Ensures it has the full width to center within */
+  }
+
+  /* Reposition the Menu for Mobile */
+  .activity-box {
+    position: static;
+    transform: none;
+    margin: 20px auto;
+    width: 100%;
+    display: flex; /* Flex is safer for pill-shaped buttons */
+    flex-direction: column;
+    gap: 15px;
+    box-sizing: border-box;
+  }
+
+  .activity-btn {
+    width: 100%;
+    padding: 16px 32px;
+    border-radius: 50px !important; /* Forces the deep curve you like */
+    box-sizing: border-box;
+    max-width: 320px; /* Keeps them from looking too stretched on wide phones */
+    margin: 0 auto;
+  }
+
+  form {
+    width: 100% !important;
+    max-width: 100%;
+    padding: 20px;
+    box-sizing: border-box; /* Ensures padding is INSIDE the 100% width */
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Force all inputs to stay within their container */
+  input,
+  select,
+  textarea,
+  .score-input {
+    font-size: 16px !important;
+    padding: 12px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  /* The Grading Table */
+  #grading-container {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .grading-table {
+    display: block; /* Allows cards to stack properly */
+    width: 100%;
+  }
+
+  .grading-table thead {
+    display: none;
+  }
+
+  .grading-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .grading-table tr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    margin-bottom: 12px;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eee;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .grading-table td:first-child {
+    font-weight: 700;
+    font-size: 15px;
+    flex: 1;
+    padding-right: 10px;
+    word-break: break-word; /* Prevents long names from pushing the score input out */
+  }
+
+  /* Specific fix for Score Inputs to stay small */
+  .score-input,
+  .grading-score-input {
+    width: 75px !important;
+    height: 45px;
+    text-align: center;
+  }
 }
