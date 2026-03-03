@@ -233,6 +233,14 @@ button:hover {
     max-width: 320px; /* Keeps them from looking too stretched on wide phones */
     margin: 0 auto;
   }
+  .modal-close-btn {
+    width: 80%;
+    padding: 16px 32px;
+    border-radius: 50px !important; /* Forces the deep curve you like */
+    box-sizing: border-box;
+    max-width: 300px; /* Keeps them from looking too stretched on wide phones */
+    margin: 0 auto;
+  }
 
   form {
     width: 100% !important;
@@ -302,5 +310,156 @@ button:hover {
     width: 75px !important;
     height: 45px;
     text-align: center;
+  }
+}
+
+/* Modal Window CSS/
+/* OVERLAY & MODAL WINDOW */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+.modal-window {
+  background: #fff;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  animation: modalSlideUp 0.3s ease-out;
+}
+.hidden {
+  display: none !important;
+}
+
+/* HEADER & ACTIONS */
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px; /* Spacing between icon and text */
+  width: 280px;
+  background: #5e5df0;
+  border-radius: 50px;
+  box-shadow: 0 10px 20px -10px #5e5df0;
+  padding: 16px 32px;
+  transition: all 0.25s ease;
+  margin: 0; /* Override default button margin */
+}
+
+.modal-close-btn:hover {
+  transform: translateY(-3px);
+  background: #4c4bd8;
+  box-shadow: 0 15px 25px -10px #5e5df0;
+}
+
+.modal-close-btn:active {
+  transform: translateY(0px);
+}
+.modal-actions {
+  padding: 10px 20px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+#directory-search {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+/* SCROLLABLE BODY & LIST ITEMS */
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+.class-group {
+  margin-bottom: 20px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.class-header {
+  background: #f8f9fa;
+  padding: 10px 15px;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+.class-body {
+  padding: 5px 0;
+}
+.student-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 15px;
+  border-bottom: 1px solid #fafafa;
+  font-size: 14px;
+}
+.student-item:last-child {
+  border-bottom: none;
+}
+.stu-name {
+  font-weight: 500;
+}
+.stu-id {
+  color: #999;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+/* FOOTER & STATUS */
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+  text-align: right;
+  border-radius: 0 0 12px 12px;
+}
+
+/* STATES */
+.loading,
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }

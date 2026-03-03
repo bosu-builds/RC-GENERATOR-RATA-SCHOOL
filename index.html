@@ -252,9 +252,9 @@
       <option value="Basic 4"></option>
       <option value="Basic 5"></option>
       <option value="Basic 6"></option>
-      <option value="JHS 1"></option>
-      <option value="JHS 2"></option>
-      <option value="JHS 3"></option>
+      <option value="Basic 7"></option>
+      <option value="Basic 8"></option>
+      <option value="Basic 9"></option>
     </datalist>
     <datalist id="termOptions">
       <option value="1"></option>
@@ -334,6 +334,38 @@
         value="(5) Needs to be more attentive in class to maximize full potential."
       ></option>
     </datalist>
+
+    <!-- MODAL WINDOW -->
+
+    <div id="modal-overlay" class="modal-overlay hidden">
+      <div
+        id="directory-modal"
+        class="modal-window"
+        role="dialog"
+        aria-labelledby="modal-title"
+      >
+        <div class="modal-header">
+          <h2 id="modal-title">Student Directory</h2>
+          <button id="close-modal-btn" class="modal-close-btn activity-btn">
+            Close
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <input
+            type="text"
+            id="directory-search"
+            placeholder="Search by name or ID..."
+          />
+        </div>
+
+        <div id="directory-list" class="modal-body"></div>
+
+        <div class="modal-footer">
+          <small>Total Students: <span id="total-count">0</span></small>
+        </div>
+      </div>
+    </div>
 
     <script src="./rcDataCollection/index.js"></script>
   </body>

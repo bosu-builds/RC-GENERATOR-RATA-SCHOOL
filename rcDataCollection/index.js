@@ -104,7 +104,7 @@ const validateNumberRange = (activeInputField, min, max) => {
   }
 };
 
-// DATA STRUCTURES
+// DATA STRUCTURES& HELPERS (UPDATED)
 // I have to add the subject codes here dirctly so
 // i will have all the info about the subject in one place, but am tired now,
 // so i will do this at dawn
@@ -158,27 +158,49 @@ const mapClassToNumber = {
   "Basic 4": 4,
   "Basic 5": 5,
   "Basic 6": 6,
+  "Basic 7": 7,
+  "Basic 8": 8,
+  "Basic 9": 9,
   "KG 1": "KG1",
   "KG 2": "KG2",
-  "JHS 1": 7,
-  "JHS 2": 8,
-  "JHS 3": 9,
 };
 
 const getLevelByGrade = (gradeValue) => {
   if (gradeValue.includes("KG")) return "KG";
-  if (gradeValue.includes("JHS")) return "JHS";
+  // This regex handles "Basic 7" or "JHS 1" by extracting the digit
   const num = parseInt(gradeValue.replace(/\D/g, ""));
+  if (num >= 7) return "JHS";
   if (num >= 1 && num <= 3) return "Lower Primary";
   if (num >= 4 && num <= 6) return "Upper Primary";
   return null;
 };
 
-const generateSmartId = (name, cNum, term, year) => {
-  const parts = name.trim().toLowerCase().split(/\s+/);
-  return `${parts[0]}_${parts[parts.length - 1]}_b${cNum}_t${term}_${year}`;
+// Helper for the searchable Class Key (Handles the B vs KG prefix)
+const getClassKey = (cNum, term, year) => {
+  const isKG = typeof cNum === "string" && cNum.startsWith("KG");
+  return `${isKG ? "" : "B"}${cNum}-T${term}-Y${year}`;
 };
 
+/**
+ * COMPOUND-SAFE ID GENERATOR
+ */
+const generateSmartId = (fullName, cNum, term, year) => {
+  if (!fullName) return "";
+  const cleanInput = fullName
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "");
+  const parts = cleanInput.split(/\s+/).filter(Boolean);
+  const first = parts[0];
+  const last = parts.length > 1 ? parts[parts.length - 1] : "student";
+
+  let levelPart =
+    typeof cNum === "string" && cNum.startsWith("KG")
+      ? cNum.toLowerCase()
+      : `b${cNum}`;
+
+  return `${first}_${last}_${levelPart}_t${term}_${year}`;
+};
 // UI ELEMENTS & NAVIGATION
 const activityBox = document.getElementById("activity-box");
 const studentForm = document.getElementById("studentForm");
@@ -260,31 +282,35 @@ activityExam.addEventListener("click", () => {
 // create a new record with DUPLICATE CHECK
 
 const saveNewStudentBtn = document.getElementById("saveNewStudentBtn");
+
 saveNewStudentBtn.addEventListener("click", async (e) => {
   e.preventDefault();
+
+  // 1. HARVEST INPUTS
   const name = document.getElementById("new-student-name").value;
   const gradeVal = document.getElementById("new-grade").value;
-  if (!name || !gradeVal) return alert("Fill all fields");
-
-  const cNum = mapClassToNumber[gradeVal] || gradeVal;
   const term = document.getElementById("new-term").value;
   const year = document.getElementById("new-year").value;
 
-  // 1. Generate the unique ID first
-  const id = generateSmartId(name, cNum, term, year);
+  if (!name || !gradeVal) return alert("Fill all fields");
 
-  // 2. DUPLICATE CHECK: Scan Master Records before proceeding
+  // 2. PROCESS DATA WITH HELPERS
+  const cNum = mapClassToNumber[gradeVal] || gradeVal;
+
+  // Use the new helpers we added to Section 5
+  const id = generateSmartId(name, cNum, term, year);
+  const classKey = getClassKey(cNum, term, year);
+
+  // 3. DUPLICATE CHECK
   const existingRecord = await db.master_records.get(id);
   if (existingRecord) {
-    return alert(
-      `🚫 DUPLICATE DETECTED: ${name} is already registered for this Term/Year!`,
-    );
+    return alert(`🚫 DUPLICATE DETECTED: ${name} is already registered!`);
   }
 
-  // 3. If no duplicate, I proceed with creation
+  // 4. PREPARE THE DATA OBJECT
   const newStudentData = {
     id,
-    classKey: `B${cNum}-T${term}-Y${year}`,
+    classKey, // Uses the smart prefix logic (B7 vs KG1)
     info: { name, class: cNum, term, year },
     scores: {},
     performance: {},
@@ -292,6 +318,7 @@ saveNewStudentBtn.addEventListener("click", async (e) => {
     updatedAt: new Date().toISOString(),
   };
 
+  // 5. SAVE TO CLOUD AND DEXIE
   const success = await saveToCloudDirect(newStudentData);
   if (success) {
     alert("✅ Student Registered Successfully!");
@@ -534,7 +561,7 @@ saveAssignmentScoresBtn.addEventListener("click", async () => {
   });
 
   await Promise.all(syncPromises);
-  alert("✅ SBA Saved Successfully!");
+  alert("✅ Continuos Assessment Saved Successfully!");
   assignmentFormElement.reset();
   gradingContainer.classList.add("hidden");
   activityBox.classList.remove("hidden");
@@ -542,44 +569,59 @@ saveAssignmentScoresBtn.addEventListener("click", async () => {
 
 let currentStudentId = "";
 
-// EXAM & PERFORMANCE LOGIC
+// EXAM & PERFORMANCE LOGIC (Verified & Aligned)
 nextStuInfoBtn.addEventListener("click", async (e) => {
   e.preventDefault();
+
+  // 1. Gather Inputs into clean variables first
   const name = document.getElementById("studentName").value;
   const grade = document.getElementById("grade").value;
-  const id = generateSmartId(
-    name,
-    mapClassToNumber[grade],
-    document.getElementById("term").value,
-    document.getElementById("year").value,
-  );
+  const term = document.getElementById("term").value;
+  const year = document.getElementById("year").value;
+
+  // 2. Map the grade (e.g., "Basic 7" -> 7)
+  const cNum = mapClassToNumber[grade] || grade;
+
+  // 3. Generate ID (Matches Registration 1:1)
+  const id = generateSmartId(name, cNum, term, year);
   currentStudentId = id;
 
+  // 4. Search the Dexie Vault
   const existing = await db.master_records.get(id);
 
   if (!existing) {
     return alert(
-      // I intentionally did it like this to give the user more meaningful info
       `🔍 STUDENT NOT FOUND IN VAULT\n\n` +
         `The system searched for:\n` +
-        `• ID: "${id}"\n` +
+        `• ID: "${id}"\n` + // Now shows the clean 'b7' or 'kg1' ID
         `• Name: ${name}\n` +
         `• Grade: ${grade}\n` +
-        `• Term: ${document.getElementById("term").value}\n` +
-        `• Year: ${document.getElementById("year").value}\n\n` +
+        `• Term: ${term}\n` +
+        `• Year: ${year}\n\n` +
         `💡 TIP: Please ensure the student is registered for THIS specific class, term and year before entering scores.`,
     );
   }
 
+  // 5. Load Subjects (Uses your restored schoolSubjects object)
   const level = getLevelByGrade(grade);
   dynamicSubjectsContainer.innerHTML = "";
-  schoolSubjects[level].forEach((sub) => {
-    const div = document.createElement("div");
-    div.className = "subject-row";
-    div.innerHTML = `<label>${sub.name}</label><input type="number" id="s_${sub.id}_exam" class="exam" placeholder="0 - 100" value="${existing.scores[`s_${sub.id}_exam`] || ""}">`;
-    dynamicSubjectsContainer.appendChild(div);
-  });
 
+  if (schoolSubjects[level]) {
+    schoolSubjects[level].forEach((sub) => {
+      const div = document.createElement("div");
+      div.className = "subject-row";
+      div.innerHTML = `
+        <label>${sub.name}</label>
+        <input type="number" 
+               id="s_${sub.id}_exam" 
+               class="exam" 
+               placeholder="0 - 100" 
+               value="${existing.scores[`s_${sub.id}_exam`] || ""}">`;
+      dynamicSubjectsContainer.appendChild(div);
+    });
+  }
+
+  // 6. Populate Performance Fields
   if (existing.performance) {
     [
       "attendance",
@@ -593,6 +635,8 @@ nextStuInfoBtn.addEventListener("click", async (e) => {
       if (el) el.value = existing.performance[f] || "";
     });
   }
+
+  // 7. UI Transition
   studentForm.classList.add("hidden");
   examScoresForm.classList.remove("hidden");
 });
@@ -679,38 +723,6 @@ performanceFields.forEach((id) => {
   }
 });
 
-// DIRECTORY & PDF LOGIC
-const viewStudentsBtn = document.getElementById("view-students-btn");
-const viewAllStudents = async () => {
-  if (!_supabase) return alert("Supabase not initialized.");
-  try {
-    const { data, error } = await _supabase
-      .from("students_sync")
-      .select("student_name, class_key, id")
-      .order("class_key", { ascending: true });
-    if (error) throw error;
-    if (data.length === 0) return alert("Cloud is empty.");
-
-    const grouped = {};
-    data.forEach((row) => {
-      if (!grouped[row.class_key]) grouped[row.class_key] = [];
-      grouped[row.class_key].push(`${row.student_name} : ${row.id}`);
-    });
-
-    let message = "☁️ GLOBAL Student Directory (Live from Cloud)\n\n";
-    Object.keys(grouped).forEach((ck) => {
-      message += `📂 ${ck} : {\n`;
-      grouped[ck].forEach((entry, i) => (message += `   ${i + 1}. ${entry}\n`));
-      message += `}\n\n`;
-    });
-    alert(message);
-  } catch (err) {
-    alert("❌ Directory fetch failed.");
-  }
-};
-
-if (viewStudentsBtn) viewStudentsBtn.onclick = viewAllStudents;
-
 genRepCardBtn.addEventListener("click", async () => {
   const data = await db.master_records.toArray();
   studentDropdown.innerHTML = '<option value="">-- Select Student --</option>';
@@ -731,3 +743,156 @@ studentDropdown.addEventListener("change", function () {
     window.location.href = `rcPdfSheet/RC-F-B.html?classKey=${ck}&studentId=${sid}`;
   }
 });
+
+// FULL MODAL WINDOW CODE
+/* ============================================================
+   DIRECTORY DATA ENGINE
+============================================================ */
+const getGroupedDirectory = async () => {
+  if (typeof db === "undefined") return null;
+
+  try {
+    const allStudents = await db.master_records.toArray();
+    if (!allStudents || allStudents.length === 0) return {};
+
+    const grouped = {};
+    allStudents.forEach((stu) => {
+      const ck = stu.classKey || "Unassigned";
+      if (!grouped[ck]) grouped[ck] = [];
+      grouped[ck].push({
+        name: stu.info?.name || "Unknown",
+        id: stu.id,
+      });
+    });
+    return grouped;
+  } catch (err) {
+    console.error("Vault Read Error:", err);
+    return null;
+  }
+};
+
+/* ============================================================
+   MODAL & OVERLAY ELEMENTS
+============================================================ */
+const dirOverlay = document.getElementById("modal-overlay");
+const dirWindow = document.getElementById("directory-modal");
+const dirList = document.getElementById("directory-list");
+const dirCloseBtn = document.getElementById("close-modal-btn");
+const dirTotalCount = document.getElementById("total-count");
+const dirSyncStatus = document.getElementById("sync-status");
+const dirSearchInput = document.getElementById("directory-search");
+const viewAllBtn = document.getElementById("view-students-btn");
+
+/* ============================================================
+   OPEN & RENDER LOGIC
+============================================================ */
+const openDirectory = async () => {
+  // 1. Open the modal immediately
+  dirOverlay.classList.remove("hidden");
+  dirList.innerHTML = `<div class="loading">Loading local records...</div>`;
+  dirSearchInput.value = ""; // Clear search on open
+
+  // 2. Fetch from IndexedDB
+  const data = await getGroupedDirectory();
+
+  if (!data || Object.keys(data).length === 0) {
+    dirList.innerHTML = `<div class="empty">No students found in the vault.</div>`;
+    dirTotalCount.innerText = "0";
+    return;
+  }
+
+  dirList.innerHTML = "";
+  let totalCounter = 0;
+
+  // 3. Sort Classes (Basic 1 -> Basic 9)
+  const sortedClasses = Object.keys(data).sort((a, b) => {
+    const numA = parseInt(a.replace(/\D/g, "")) || 0;
+    const numB = parseInt(b.replace(/\D/g, "")) || 0;
+    return numA - numB;
+  });
+
+  // 4. Render HTML
+  sortedClasses.forEach((className) => {
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "class-group";
+
+    let studentRows = "";
+    data[className].forEach((stu) => {
+      totalCounter++;
+      studentRows += `
+        <div class="student-item">
+          <span class="stu-name">${stu.name}</span>
+          <code class="stu-id">${stu.id}</code>
+        </div>`;
+    });
+
+    groupDiv.innerHTML = `
+      <div class="class-header">📂 ${className}</div>
+      <div class="class-body">${studentRows}</div>
+    `;
+    dirList.appendChild(groupDiv);
+  });
+
+  dirTotalCount.innerText = totalCounter;
+
+  // 5. Background Sync Trigger
+  if (typeof syncAllData === "function") {
+    dirSyncStatus.innerText = "Syncing...";
+    dirSyncStatus.style.background = "#ff9800"; // Orange while syncing
+
+    syncAllData()
+      .then(() => {
+        dirSyncStatus.innerText = "Cloud Synced";
+        dirSyncStatus.style.background = "#4CAF50"; // Green on success
+      })
+      .catch(() => {
+        dirSyncStatus.innerText = "Offline Mode";
+        dirSyncStatus.style.background = "#f44336"; // Red on fail
+      });
+  }
+};
+
+/* ============================================================
+   EVENT LISTENERS
+============================================================ */
+// Open Directory
+if (viewAllBtn) {
+  viewAllBtn.addEventListener("click", openDirectory);
+}
+
+// Close Modal
+if (dirCloseBtn) {
+  dirCloseBtn.addEventListener("click", () =>
+    dirOverlay.classList.add("hidden"),
+  );
+}
+
+// Close on Overlay Click
+if (dirOverlay) {
+  dirOverlay.addEventListener("click", (e) => {
+    if (e.target === dirOverlay) dirOverlay.classList.add("hidden");
+  });
+}
+
+// Real-Time Search Filter
+if (dirSearchInput) {
+  dirSearchInput.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    const items = document.querySelectorAll(".student-item");
+    const groups = document.querySelectorAll(".class-group");
+
+    items.forEach((item) => {
+      const name = item.querySelector(".stu-name").innerText.toLowerCase();
+      const id = item.querySelector(".stu-id").innerText.toLowerCase();
+      item.style.display =
+        name.includes(term) || id.includes(term) ? "flex" : "none";
+    });
+
+    groups.forEach((group) => {
+      const visibleItems = Array.from(
+        group.querySelectorAll(".student-item"),
+      ).some((item) => item.style.display !== "none");
+      group.style.display = visibleItems ? "block" : "none";
+    });
+  });
+}
