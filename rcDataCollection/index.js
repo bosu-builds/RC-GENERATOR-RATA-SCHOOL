@@ -816,6 +816,9 @@ const openDirectory = async () => {
     const groupDiv = document.createElement("div");
     groupDiv.className = "class-group";
 
+    // Get the number of students in THIS specific class
+    const studentCount = data[className].length;
+
     let studentRows = "";
     data[className].forEach((stu) => {
       totalCounter++;
@@ -826,8 +829,12 @@ const openDirectory = async () => {
         </div>`;
     });
 
+    // UPDATED HEADER: Now includes the count on the right
     groupDiv.innerHTML = `
-      <div class="class-header">📂 ${className}</div>
+      <div class="class-header">
+        <span>📂 ${className}</span>
+        <span class="class-count">${studentCount} Students</span>
+      </div>
       <div class="class-body">${studentRows}</div>
     `;
     dirList.appendChild(groupDiv);
