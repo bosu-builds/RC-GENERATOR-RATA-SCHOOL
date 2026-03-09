@@ -1,140 +1,76 @@
-/*  GLOBAL LAYOUT */
+/* 
+   1. GLOBAL VARIABLES & SYSTEM LOCKDOWN
+*/
+:root {
+  /* System Veto: Force Light Mode */
+  color-scheme: light !important;
+
+  /* Brand Colors */
+  --primary: #5e5df0;
+  --primary-hover: #4c4bd8;
+  --primary-dark: #0056b3;
+  --primary-glow: rgba(94, 93, 240, 0.1);
+
+  /* Backgrounds */
+  --bg-body: #f4f7f6;
+  --bg-surface: #ffffff;
+  --bg-header: #f8f9fa;
+  --bg-footer: #fafafa;
+  --bg-muted: #eef2f5;
+  --bg-hover: #ebf8ff;
+  --bg-search: #f7fafc;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --bg-badge: #edf2f7;
+
+  /* Text Colors */
+  --text-main: #333333;
+  --text-heading: #2c3e50;
+  --text-dark: #2d3748;
+  --text-muted: #718096;
+  --text-light: #888888;
+  --text-id: #a0aec0;
+  --text-disabled: #666666;
+
+  /* Borders & Shadows */
+  --border-light: #fafafa;
+  --border-main: #eeeeee;
+  --border-dark: #dddddd;
+  --border-input: #cccccc;
+  --border-card: #e0e0e0;
+  --border-focus: #bee3f8;
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --shadow-btn: 0 10px 20px -10px var(--primary);
+}
+
+/* Base Reset & Veto Rules */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Stops blue flash on iOS tap */
+}
+
 body {
   font-family: "Inter", Arial, sans-serif;
-  background-color: #f4f7f6;
+  background-color: var(--bg-body) !important;
+  color: var(--text-main) !important;
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  color: #333;
 }
 
+/* ============================================================
+   2. TYPOGRAPHY & UTILITIES
+============================================================ */
 h2 {
   margin-bottom: 20px;
-  color: #2c3e50;
+  color: var(--text-heading) !important;
 }
 
-/* Visibility */
 .hidden {
-  /* This forces the element to hide regardless of layout mode, And this is how i want to be actually */
   display: none !important;
-}
-
-/* 3. FORM STYLING */
-form {
-  background: white;
-  width: 100%;
-  max-width: 450px;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 18px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  box-sizing: border-box; /* Prevents input from overflowing form width */
-  font-size: 15px;
-}
-
-input:focus {
-  border-color: #5e5df0;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(94, 93, 240, 0.1);
-}
-
-/* 4. BUTTON STYLES */
-button {
-  width: 100%;
-  padding: 12px;
-  background: #5e5df0;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: background 0.2s;
-  margin-top: 5px;
-}
-
-button:hover {
-  background: #0056b3;
-}
-
-.btn-disabled {
-  background: #bdc3c7 !important;
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-/* 5. ACTIVITY BOX (The Center Menu) */
-.activity-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-
-  /* Fixes the menu in the dead center of the screen */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-}
-
-.activity-btn {
-  width: 280px;
-  background: #5e5df0;
-  border-radius: 50px;
-  box-shadow: 0 10px 20px -10px #5e5df0;
-  padding: 16px 32px;
-  transition: all 0.25s ease;
-  margin: 0; /* Override default button margin */
-}
-
-.activity-btn:hover {
-  transform: translateY(-3px);
-  background: #4c4bd8;
-  box-shadow: 0 15px 25px -10px #5e5df0;
-}
-
-.activity-btn:active {
-  transform: translateY(0px);
-}
-
-/* 6. UTILITIES */
-
-#saveStudentBtn,
-#nextStudentBtn {
-  margin-bottom: 15px;
-}
-
-#studentDropdown {
-  margin-top: 15px;
-  border: 2px solid #5e5df0;
-}
-
-.activity-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px; /* Spacing between icon and text */
 }
 
 .material-symbols-outlined {
@@ -146,13 +82,140 @@ button:hover {
     "opsz" 24;
 }
 
+/* ============================================================
+   3. FORMS & INPUTS (Forced Styling)
+============================================================ */
+form {
+  background-color: var(--bg-surface) !important;
+  width: 100%;
+  max-width: 450px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-card);
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main) !important;
+}
+
+/* Force Inputs to resist iOS/Android theming */
+input,
+select,
+textarea {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 18px;
+  border-radius: 6px;
+  border: 1px solid var(--border-input);
+  font-size: 15px;
+  appearance: none;
+  -webkit-appearance: none; /* Kills Apple's default styles */
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+#studentDropdown {
+  margin-top: 15px;
+  border: 2px solid var(--primary);
+}
+
+/* ============================================================
+   4. BUTTONS
+============================================================ */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary) !important;
+  color: #ffffff !important; /* Always white text on colored buttons */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.2s;
+  margin-top: 5px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+button:hover {
+  background-color: var(--primary-dark) !important;
+}
+
+.btn-disabled {
+  background-color: var(--border-input) !important;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+#saveStudentBtn,
+#nextStudentBtn {
+  margin-bottom: 15px;
+}
+
+/* ============================================================
+   5. ACTIVITY MENU (Center Box)
+============================================================ */
+.activity-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+.activity-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 280px;
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+  border-radius: 50px;
+  box-shadow: var(--shadow-btn);
+  padding: 16px 32px;
+  transition: all 0.25s ease;
+  margin: 0;
+}
+
+.activity-btn:hover {
+  transform: translateY(-3px);
+  background-color: var(--primary-hover) !important;
+  box-shadow: 0 15px 25px -10px var(--primary);
+}
+
+.activity-btn:active {
+  transform: translateY(0px);
+}
+
+/* ============================================================
+   6. GRADING TABLE
+============================================================ */
 .grading-header {
   text-align: center;
   margin-bottom: 20px;
-  background: #eef2f5;
+  background-color: var(--bg-muted) !important;
   padding: 15px;
   border-radius: 8px;
-  border-left: 5px solid #5e5df0;
+  border-left: 5px solid var(--primary);
 }
 
 .grading-table {
@@ -164,24 +227,17 @@ button:hover {
 .grading-table th {
   text-align: left;
   padding: 10px;
-  background: #f8f9fa;
-  border-bottom: 2px solid #ddd;
+  background-color: var(--bg-header) !important;
+  border-bottom: 2px solid var(--border-dark);
+  color: var(--text-main) !important;
 }
 
 .grading-table td {
   padding: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-main);
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
 }
-
-.score-input {
-  width: 80px; /* Small box for numbers */
-  padding: 8px;
-  margin: 0; /* Override global input margin */
-  text-align: center;
-  font-weight: bold;
-}
-
-/* Timestamp styling  */
 
 .score-cell {
   display: flex;
@@ -189,267 +245,278 @@ button:hover {
   align-items: center;
 }
 
+.score-input {
+  width: 80px;
+  padding: 8px;
+  margin: 0;
+  text-align: center;
+  font-weight: bold;
+}
+
 .update-ts {
   font-size: 0.7rem;
-  color: #888;
+  color: var(--text-light) !important;
   margin-top: 2px;
 }
 
-/* MOBILE RESPONSIVENESS (Below 768px) */
-
-@media screen and (max-width: 767px) {
-  body {
-    padding: 10px;
-    align-items: stretch;
-    overflow-x: hidden; /* Hard stop for horizontal scrolling */
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-    margin-top: 10px;
-    text-align: center; /* Centers the text inside the stretched block */
-    width: 100%; /* Ensures it has the full width to center within */
-  }
-
-  /* Reposition the Menu for Mobile */
-  .activity-box {
-    position: static;
-    transform: none;
-    margin: 20px auto;
-    width: 100%;
-    display: flex; /* Flex is safer for pill-shaped buttons */
-    flex-direction: column;
-    gap: 15px;
-    box-sizing: border-box;
-  }
-
-  .activity-btn {
-    width: 100%;
-    padding: 16px 32px;
-    border-radius: 50px !important; /* Forces the deep curve you like */
-    box-sizing: border-box;
-    max-width: 320px; /* Keeps them from looking too stretched on wide phones */
-    margin: 0 auto;
-  }
-  .modal-close-btn {
-    width: 80%;
-    padding: 16px 32px;
-    border-radius: 50px !important; /* Forces the deep curve you like */
-    box-sizing: border-box;
-    max-width: 300px; /* Keeps them from looking too stretched on wide phones */
-    margin: 0 auto;
-  }
-
-  form {
-    width: 100% !important;
-    max-width: 100%;
-    padding: 20px;
-    box-sizing: border-box; /* Ensures padding is INSIDE the 100% width */
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  /* Force all inputs to stay within their container */
-  input,
-  select,
-  textarea,
-  .score-input {
-    font-size: 16px !important;
-    padding: 12px;
-    box-sizing: border-box;
-    width: 100%;
-  }
-
-  /* The Grading Table */
-  #grading-container {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .grading-table {
-    display: block; /* Allows cards to stack properly */
-    width: 100%;
-  }
-
-  .grading-table thead {
-    display: none;
-  }
-
-  .grading-table tbody {
-    display: block;
-    width: 100%;
-  }
-
-  .grading-table tr {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    margin-bottom: 12px;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #eee;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .grading-table td:first-child {
-    font-weight: 700;
-    font-size: 15px;
-    flex: 1;
-    padding-right: 10px;
-    word-break: break-word; /* Prevents long names from pushing the score input out */
-  }
-
-  /* Specific fix for Score Inputs to stay small */
-  .score-input,
-  .grading-score-input {
-    width: 75px !important;
-    height: 45px;
-    text-align: center;
-  }
-}
-
-/* Modal Window CSS/
-/* OVERLAY & MODAL WINDOW */
-.modal-overlay {
+/* ============================================================
+   7. MODAL WINDOWS (Directory & Picker Shared Base)
+============================================================ */
+.modal-overlay,
+.pk-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background-color: var(--bg-overlay) !important;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   backdrop-filter: blur(4px);
 }
-.modal-window {
-  background: #fff;
+
+.pk-overlay {
+  z-index: 10000;
+}
+
+.modal-window,
+.pk-window {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
   width: 90%;
   max-width: 600px;
   max-height: 80vh;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-md);
   animation: modalSlideUp 0.3s ease-out;
-}
-.hidden {
-  display: none !important;
+  overflow: hidden;
 }
 
-/* HEADER & ACTIONS */
-.modal-header {
+.pk-window {
+  width: 95%;
+  max-width: 550px;
+  border-radius: 16px;
+}
+
+/* Modal Headers */
+.modal-header,
+.pk-header {
   padding: 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-main);
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.2rem;
+  background-color: var(--bg-surface) !important;
 }
 
+.pk-header {
+  padding: 15px 20px;
+}
+
+.modal-header h2,
+.pk-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-heading) !important;
+}
+
+.pk-header h2 {
+  font-size: 1.1rem;
+}
+
+/* Modal Close Button */
 .modal-close-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px; /* Spacing between icon and text */
+  gap: 12px;
   width: 280px;
-  background: #5e5df0;
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
   border-radius: 50px;
-  box-shadow: 0 10px 20px -10px #5e5df0;
+  box-shadow: var(--shadow-btn);
   padding: 16px 32px;
   transition: all 0.25s ease;
-  margin: 0; /* Override default button margin */
+  margin: 0;
 }
 
 .modal-close-btn:hover {
   transform: translateY(-3px);
-  background: #4c4bd8;
-  box-shadow: 0 15px 25px -10px #5e5df0;
+  background-color: var(--primary-hover) !important;
 }
 
 .modal-close-btn:active {
   transform: translateY(0px);
 }
-.modal-actions {
+
+/* Search Areas */
+.modal-actions,
+.pk-search-area {
   padding: 10px 20px;
-  background: #f9f9f9;
-  border-bottom: 1px solid #eee;
+  background-color: var(--bg-search) !important;
+  border-bottom: 1px solid var(--border-main);
   display: flex;
   gap: 10px;
   align-items: center;
 }
-#directory-search {
-  flex-grow: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+
+.pk-search-area {
+  padding: 12px 20px;
 }
 
-/* SCROLLABLE BODY & LIST ITEMS */
-.modal-body {
+#directory-search,
+#picker-search {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid var(--border-dark);
+  border-radius: 6px;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+}
+
+#picker-search {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Modal Body & Items */
+.modal-body,
+.pk-body {
   padding: 20px;
   overflow-y: auto;
   flex-grow: 1;
+  background-color: var(--bg-surface) !important;
 }
+
+.pk-body {
+  padding: 10px;
+}
+
 .class-group {
   margin-bottom: 20px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   overflow: hidden;
 }
-.class-header {
-  background: #f8f9fa;
+
+.class-header,
+.pk-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 10px 15px;
+  background-color: var(--bg-header) !important;
+  border-bottom: 1px solid var(--border-main);
   font-weight: bold;
-  border-bottom: 1px solid #eee;
-  color: #333;
+  color: var(--text-main) !important;
 }
+
+.pk-group-header {
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-dark) !important;
+}
+
+.class-count {
+  font-size: 12px;
+  color: var(--text-muted) !important;
+  background-color: var(--bg-badge) !important;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
 .class-body {
   padding: 5px 0;
 }
-.student-item {
+
+.student-item,
+.pk-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 8px 15px;
-  border-bottom: 1px solid #fafafa;
+  border-bottom: 1px solid var(--border-light);
   font-size: 14px;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
 }
+
+.pk-item {
+  padding: 14px 15px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
 .student-item:last-child {
   border-bottom: none;
 }
-.stu-name {
-  font-weight: 500;
-}
-.stu-id {
-  color: #999;
-  font-size: 11px;
-  font-family: monospace;
+
+.pk-item:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--border-focus) !important;
+  transform: translateX(4px);
 }
 
-/* FOOTER & STATUS */
-.modal-footer {
+.stu-name,
+.pk-name {
+  font-weight: 500;
+  color: var(--text-main) !important;
+}
+
+.pk-name {
+  font-weight: 600;
+  color: var(--text-dark) !important;
+}
+
+.stu-id,
+.pk-id {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--text-id) !important;
+}
+
+.pk-id {
+  background-color: var(--bg-search) !important;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Modal Footers */
+.modal-footer,
+.pk-footer {
   padding: 15px 20px;
-  border-top: 1px solid #eee;
-  background: #fafafa;
-  text-align: right;
+  border-top: 1px solid var(--border-main);
+  background-color: var(--bg-footer) !important;
+  color: var(--text-main) !important;
   border-radius: 0 0 12px 12px;
 }
 
-/* STATES */
+.modal-footer {
+  text-align: right;
+}
+.pk-footer {
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* States */
 .loading,
 .empty {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-disabled) !important;
   font-style: italic;
 }
 
@@ -464,30 +531,104 @@ button:hover {
   }
 }
 
-/* View All Stuednts Css For Number of students in each class */
-.class-header {
-  display: flex;
-  justify-content: space-between; /* This pushes the name left and count right */
-  align-items: center;
-  padding: 10px 15px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
-}
+/* ============================================================
+   8. MOBILE RESPONSIVENESS (Below 768px)
+============================================================ */
+@media screen and (max-width: 767px) {
+  body {
+    padding: 10px;
+    align-items: stretch;
+    overflow-x: hidden;
+    width: 100%;
+  }
 
-.class-count {
-  font-size: 12px;
-  color: #718096;
-  background: #edf2f7;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
+  h2 {
+    font-size: 1.5rem;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+  }
 
-/* CSS for student exam drop-down search */
+  .activity-box {
+    position: static;
+    transform: none;
+    margin: 20px auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
 
-/* Highlights the student name field when actively searching */
-#studentName:focus {
-  border-color: #4caf50;
-  background-color: #fafffa;
-  outline: none;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+  .activity-btn {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .modal-close-btn {
+    width: 80%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  form {
+    width: 100% !important;
+    max-width: 100%;
+    padding: 20px;
+    margin: 0;
+  }
+
+  input,
+  select,
+  textarea,
+  .score-input {
+    font-size: 16px !important;
+    padding: 12px;
+    width: 100%;
+  }
+
+  /* The Grading Table Mobile Cards */
+  #grading-container,
+  .grading-table,
+  .grading-table tbody {
+    width: 100%;
+    display: block;
+  }
+
+  .grading-table thead {
+    display: none;
+  }
+
+  .grading-table tr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-surface) !important;
+    margin-bottom: 12px;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-main);
+    width: 100%;
+  }
+
+  .grading-table td {
+    border-bottom: none;
+    padding: 0;
+  }
+
+  .grading-table td:first-child {
+    font-weight: 700;
+    font-size: 15px;
+    flex: 1;
+    padding-right: 10px;
+    word-break: break-word;
+  }
+
+  .score-input,
+  .grading-score-input {
+    width: 75px !important;
+    height: 45px;
+    text-align: center;
+  }
 }

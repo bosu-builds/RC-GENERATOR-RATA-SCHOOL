@@ -1,8 +1,11 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+
     <meta
-      charset="UTF-8"
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
@@ -188,11 +191,47 @@
       <input
         type="text"
         id="studentName"
-        list="studentNameOptions"
-        placeholder="Select or type..."
+        placeholder="Tap to select student..."
+        readonly
         required
       />
-      <datalist id="studentNameOptions"></datalist>
+
+      <div id="picker-overlay" class="pk-overlay hidden">
+        <div class="pk-window">
+          <div class="pk-header">
+            <h2>Select Student</h2>
+            <button
+              type="button"
+              id="close-picker-btn"
+              class="modal-close-btn"
+              style="width: auto; padding: 10px 20px"
+            >
+              Close
+            </button>
+          </div>
+
+          <div class="pk-search-area">
+            <input
+              type="text"
+              id="picker-search"
+              placeholder="Search by name..."
+              autocomplete="off"
+            />
+          </div>
+
+          <div id="picker-list" class="pk-body"></div>
+
+          <div class="pk-footer">
+            <small style="color: #718096">Exam Entry System</small>
+            <small
+              >Total:
+              <span id="picker-total-count" style="font-weight: bold"
+                >0</span
+              ></small
+            >
+          </div>
+        </div>
+      </div>
 
       <button id="Next-Student-Form" type="submit">Next</button>
     </form>

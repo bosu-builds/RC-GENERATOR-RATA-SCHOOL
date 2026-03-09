@@ -569,56 +569,117 @@ saveAssignmentScoresBtn.addEventListener("click", async () => {
 
 let currentStudentId = "";
 
-// NEWLY ADDED BLOCK OOF CODE FOR
-
 /* ============================================================
-   DYNAMIC STUDENT DROPDOWN LOGIC
+   SMART STUDENT PICKER (STRICT DIRECTORY STYLING)
 ============================================================ */
-const updateStudentDropdown = async () => {
-  const nameInput = document.getElementById("studentName");
-  const nameDatalist = document.getElementById("studentNameOptions");
+const pickerOverlay = document.getElementById("picker-overlay");
+const pickerList = document.getElementById("picker-list");
+const pickerSearch = document.getElementById("picker-search");
+const studentNameInput = document.getElementById("studentName");
+const closePickerBtn = document.getElementById("close-picker-btn");
+const pickerTotalCount = document.getElementById("picker-total-count");
+
+let currentCohort = [];
+
+const openStudentPicker = async () => {
   const gradeVal = document.getElementById("grade").value.trim();
   const term = document.getElementById("term").value.trim();
   const year = document.getElementById("year").value.trim();
 
-  // 1. Guard clause: Ensure all fields exist and have values
-  if (!gradeVal || !term || !year || !nameDatalist) return;
+  if (!gradeVal || !term || !year) {
+    return alert("⚠️ Please select Grade, Term, and Year first.");
+  }
 
-  // 2. Use your existing helpers to get the exact database key (e.g., B7-T2-Y2026)
   const cNum = mapClassToNumber[gradeVal] || gradeVal;
   const targetClassKey = getClassKey(cNum, term, year);
 
   try {
-    // 3. Query IndexedDB for this specific cohort
-    const matchingStudents = await db.master_records
+    currentCohort = await db.master_records
       .where("classKey")
       .equals(targetClassKey)
       .toArray();
 
-    // 4. Reset the datalist and the name input
-    nameDatalist.innerHTML = "";
-    nameInput.value = "";
+    if (currentCohort.length === 0) {
+      return alert(`No students found for ${gradeVal} in the vault.`);
+    }
 
-    // 5. Populate the datalist alphabetically
-    matchingStudents
-      .sort((a, b) => a.info.name.localeCompare(b.info.name))
-      .forEach((stu) => {
-        const option = document.createElement("option");
-        option.value = stu.info.name;
-        nameDatalist.appendChild(option);
-      });
+    pickerOverlay.classList.remove("hidden");
+    pickerSearch.value = "";
+    renderPickerList(currentCohort, gradeVal);
+
+    setTimeout(() => pickerSearch.focus(), 100);
   } catch (err) {
-    console.error("Dropdown Sync Error:", err);
+    console.error("Picker Error:", err);
   }
 };
 
-// 6. Attach listeners to trigger the update when the teacher changes Class, Term, or Year
-["grade", "term", "year"].forEach((id) => {
-  const el = document.getElementById(id);
-  if (el) {
-    el.addEventListener("change", updateStudentDropdown);
-    el.addEventListener("input", updateStudentDropdown); // Catches typing before clicking away
+const renderPickerList = (students, className) => {
+  pickerList.innerHTML = "";
+  document.getElementById("picker-total-count").innerText = students.length;
+
+  if (students.length === 0) {
+    pickerList.innerHTML = '<div class="empty">No students found.</div>';
+    return;
   }
+
+  // 1. Create the Header Row (Mimics Directory style)
+  const headerDiv = document.createElement("div");
+  headerDiv.className = "pk-group-header";
+  headerDiv.innerHTML = `
+    <span>📂 ${className}</span>
+    <span>${students.length} Students</span>
+  `;
+  pickerList.appendChild(headerDiv);
+
+  // 2. Render Students
+  students
+    .sort((a, b) => a.info.name.localeCompare(b.info.name))
+    .forEach((stu) => {
+      const row = document.createElement("div");
+      row.className = "pk-item";
+      row.innerHTML = `
+        <span class="pk-name">${stu.info.name}</span>
+        <span class="pk-id">${stu.id}</span>
+      `;
+
+      row.onclick = () => {
+        studentNameInput.value = stu.info.name;
+        pickerOverlay.classList.add("hidden");
+      };
+      pickerList.appendChild(row);
+    });
+};
+
+/* --- EVENT LISTENERS --- */
+
+pickerSearch.addEventListener("input", (e) => {
+  const term = e.target.value.toLowerCase();
+  const filtered = currentCohort.filter(
+    (s) =>
+      s.info.name.toLowerCase().includes(term) ||
+      s.id.toLowerCase().includes(term),
+  );
+  // Re-render with current grade label
+  const gradeVal = document.getElementById("grade").value;
+  renderPickerList(filtered, gradeVal);
+});
+
+studentNameInput.addEventListener("click", openStudentPicker);
+
+closePickerBtn.addEventListener("click", () =>
+  pickerOverlay.classList.add("hidden"),
+);
+
+// Close on Overlay Click
+pickerOverlay.addEventListener("click", (e) => {
+  if (e.target === pickerOverlay) pickerOverlay.classList.add("hidden");
+});
+
+// Auto-wipe name on cohort change
+["grade", "term", "year"].forEach((id) => {
+  document.getElementById(id).addEventListener("change", () => {
+    studentNameInput.value = "";
+  });
 });
 
 // EXAM & PERFORMANCE LOGIC (Verified & Aligned)
@@ -798,9 +859,7 @@ studentDropdown.addEventListener("change", function () {
 });
 
 // FULL MODAL WINDOW CODE
-/* ============================================================
-   DIRECTORY DATA ENGINE
-============================================================ */
+/* DIRECTORY DATA ENGINE */
 const getGroupedDirectory = async () => {
   if (typeof db === "undefined") return null;
 
@@ -912,9 +971,7 @@ const openDirectory = async () => {
   }
 };
 
-/* ============================================================
-   EVENT LISTENERS
-============================================================ */
+/* EVENT LISTENERS */
 // Open Directory
 if (viewAllBtn) {
   viewAllBtn.addEventListener("click", openDirectory);
