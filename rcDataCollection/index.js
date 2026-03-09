@@ -337,6 +337,16 @@ if (goBackToHomePageFromAddStudent) {
   });
 }
 
+const goBackToHomePageFromStudentForm = document.getElementById(
+  "goBackToHomePageFromStudentForm",
+);
+
+goBackToHomePageFromStudentForm.addEventListener("click", function () {
+  studentForm.reset();
+  studentForm.classList.add("hidden");
+  activityBox.classList.remove("hidden");
+});
+
 const goBackToHomePageFromOvrPerformance = document.getElementById(
   "goBackToHomePageFromOvrPerformance",
 );
