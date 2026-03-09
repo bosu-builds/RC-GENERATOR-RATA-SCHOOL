@@ -481,3 +481,13 @@ button:hover {
   padding: 2px 8px;
   border-radius: 4px;
 }
+
+/* CSS for student exam drop-down search */
+
+/* Highlights the student name field when actively searching */
+#studentName:focus {
+  border-color: #4caf50;
+  background-color: #fafffa;
+  outline: none;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}

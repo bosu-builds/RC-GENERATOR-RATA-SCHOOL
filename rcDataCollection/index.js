@@ -569,6 +569,58 @@ saveAssignmentScoresBtn.addEventListener("click", async () => {
 
 let currentStudentId = "";
 
+// NEWLY ADDED BLOCK OOF CODE FOR
+
+/* ============================================================
+   DYNAMIC STUDENT DROPDOWN LOGIC
+============================================================ */
+const updateStudentDropdown = async () => {
+  const nameInput = document.getElementById("studentName");
+  const nameDatalist = document.getElementById("studentNameOptions");
+  const gradeVal = document.getElementById("grade").value.trim();
+  const term = document.getElementById("term").value.trim();
+  const year = document.getElementById("year").value.trim();
+
+  // 1. Guard clause: Ensure all fields exist and have values
+  if (!gradeVal || !term || !year || !nameDatalist) return;
+
+  // 2. Use your existing helpers to get the exact database key (e.g., B7-T2-Y2026)
+  const cNum = mapClassToNumber[gradeVal] || gradeVal;
+  const targetClassKey = getClassKey(cNum, term, year);
+
+  try {
+    // 3. Query IndexedDB for this specific cohort
+    const matchingStudents = await db.master_records
+      .where("classKey")
+      .equals(targetClassKey)
+      .toArray();
+
+    // 4. Reset the datalist and the name input
+    nameDatalist.innerHTML = "";
+    nameInput.value = "";
+
+    // 5. Populate the datalist alphabetically
+    matchingStudents
+      .sort((a, b) => a.info.name.localeCompare(b.info.name))
+      .forEach((stu) => {
+        const option = document.createElement("option");
+        option.value = stu.info.name;
+        nameDatalist.appendChild(option);
+      });
+  } catch (err) {
+    console.error("Dropdown Sync Error:", err);
+  }
+};
+
+// 6. Attach listeners to trigger the update when the teacher changes Class, Term, or Year
+["grade", "term", "year"].forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener("change", updateStudentDropdown);
+    el.addEventListener("input", updateStudentDropdown); // Catches typing before clicking away
+  }
+});
+
 // EXAM & PERFORMANCE LOGIC (Verified & Aligned)
 nextStuInfoBtn.addEventListener("click", async (e) => {
   e.preventDefault();
@@ -591,7 +643,7 @@ nextStuInfoBtn.addEventListener("click", async (e) => {
 
   if (!existing) {
     return alert(
-      `🔍 STUDENT NOT FOUND IN VAULT\n\n` +
+      `🔍 STUDENT NOT FOUND IN THE SYSTEM\n\n` +
         `The system searched for:\n` +
         `• ID: "${id}"\n` + // Now shows the clean 'b7' or 'kg1' ID
         `• Name: ${name}\n` +
@@ -645,7 +697,8 @@ saveStuBtn.addEventListener("click", async (e) => {
   e.preventDefault();
 
   const existing = await db.master_records.get(currentStudentId);
-  if (!existing) return alert("❌ Error: Student record not found in Vault.");
+  if (!existing)
+    return alert("❌ Error: Student record not found in the system.");
 
   const studentName = existing.info.name;
   const grade = document.getElementById("grade").value;
