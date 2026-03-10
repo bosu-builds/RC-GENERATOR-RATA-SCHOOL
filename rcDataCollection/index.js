@@ -579,9 +579,7 @@ saveAssignmentScoresBtn.addEventListener("click", async () => {
 
 let currentStudentId = "";
 
-/* ============================================================
-   SMART STUDENT PICKER (STRICT DIRECTORY STYLING)
-============================================================ */
+/* SMART STUDENT PICKER (STRICT DIRECTORY STYLING) */
 const pickerOverlay = document.getElementById("picker-overlay");
 const pickerList = document.getElementById("picker-list");
 const pickerSearch = document.getElementById("picker-search");
@@ -616,8 +614,6 @@ const openStudentPicker = async () => {
     pickerOverlay.classList.remove("hidden");
     pickerSearch.value = "";
     renderPickerList(currentCohort, gradeVal);
-
-    setTimeout(() => pickerSearch.focus(), 100);
   } catch (err) {
     console.error("Picker Error:", err);
   }
