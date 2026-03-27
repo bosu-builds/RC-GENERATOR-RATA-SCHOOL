@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="color-scheme" content="light" />
     <meta name="supported-color-schemes" content="light" />
-
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -22,142 +21,89 @@
     <h2>Student Information</h2>
 
     <div id="activity-box" class="activity-box">
-      <button
-        id="view-students-btn"
-        class="activity-btn secondary"
-        role="button"
-      >
-        <span class="material-symbols-outlined">groups</span>
-        View All Students
+      <button id="view-students-btn" class="activity-btn secondary">
+        <span class="material-symbols-outlined">groups</span> View All Students
       </button>
-
-      <button id="syncVaultBtn" class="activity-btn secondary" role="button">
+      <button id="syncVaultBtn" class="activity-btn secondary">
         🔄 Sync Master Vault
       </button>
-
-      <button id="add-student-btn" class="activity-btn secondary" role="button">
-        <span class="material-symbols-outlined">person_add</span>
-        Add Students
+      <button id="add-student-btn" class="activity-btn secondary">
+        <span class="material-symbols-outlined">person_add</span> Add Students
       </button>
-
-      <button id="sba-btn" class="activity-btn secondary" role="button">
-        <span class="material-symbols-outlined">add_task</span>
-        Create Assignment
+      <button id="sba-btn" class="activity-btn secondary">
+        <span class="material-symbols-outlined">add_task</span> Create
+        Assignment
       </button>
-
-      <button id="exam-btn" class="activity-btn primary" role="button">
-        <span class="material-symbols-outlined">edit_document</span>
-        Enter Exams
+      <button id="exam-btn" class="activity-btn primary">
+        <span class="material-symbols-outlined">edit_document</span> Enter Exams
       </button>
     </div>
 
     <form id="addStudentForm" class="hidden">
       <h3>Register New Student</h3>
-      <label for="new-student-name">Student Name:</label>
+      <label>Student Name:</label>
       <input type="text" id="new-student-name" required />
-
-      <label for="new-grade">Class:</label>
-      <input list="classOptions" type="text" id="new-grade" required />
-
-      <label for="new-term">Term:</label>
-      <input list="termOptions" id="new-term" value="2" required />
-
-      <label for="new-year">Year:</label>
-      <input list="yearOptions" id="new-year" value="2026" required />
-
+      <label>Class:</label>
+      <input
+        type="text"
+        id="new-grade"
+        readonly
+        placeholder="Select Class"
+        required
+      />
+      <label>Term:</label>
+      <input type="text" id="new-term" readonly value="2" required />
+      <label>Year:</label>
+      <input type="text" id="new-year" readonly value="2026" required />
       <button id="saveNewStudentBtn" type="submit">Save to Database</button>
-      <button id="goBackToHomePageFromAddStudent">Go Back Home</button>
+      <button id="goBackToHomePageFromAddStudent" type="button">
+        Go Back Home
+      </button>
     </form>
 
-    <!-- This is the Assignment Form -->
     <form id="assignmentForm" class="hidden">
-      <label for="assignment-year">Year:</label>
+      <label>Year:</label>
+      <input type="text" id="assignment-year" readonly value="2026" required />
+      <label>Class:</label>
       <input
-        list="yearOptions"
-        id="assignment-year"
-        name="year"
-        value="2026"
-        required
-      />
-
-      <label for="assignment-grade">Class (Basic):</label>
-      <input
-        list="classOptions"
         type="text"
         id="assignment-grade"
-        name="class"
+        readonly
+        placeholder="Select Class"
         required
       />
-
-      <label for="assignment-term">Term:</label>
+      <label>Term:</label>
+      <input type="text" id="assignment-term" readonly value="2" required />
+      <label>Subject:</label>
       <input
-        list="termOptions"
-        id="assignment-term"
-        name="term"
-        value="2"
-        required
-      />
-
-      <label for="assignment-subject">Subject:</label>
-      <input
-        list="subjectOptions"
+        type="text"
         id="assignment-subject"
-        name="subject"
-        placeholder="e.g. Mathematics"
+        readonly
+        placeholder="Select Subject"
         required
       />
-      <datalist id="subjectOptions">
-        <!-- I will auto pull the subjects in this cohort-(Specific Class).
-        since the year,class and term will be entered by then... -->
-      </datalist>
-
-      <label for="assignment-type">Assignment Type:</label>
+      <label>Assignment Type:</label>
       <input
-        list="typeOptions"
+        type="text"
         id="assignment-type"
-        name="type"
+        readonly
         placeholder="Select Type"
         required
       />
-      <datalist id="typeOptions">
-        <option value="Class Exercise (CE)"></option>
-        <option value="Home-Work (HWK)"></option>
-        <option value="Class Test (CT)"></option>
-        <option value="Project Work (PW)"></option>
-        <option value="Group Work (GW)"></option>
-      </datalist>
-
-      <label for="assignment-number">Assignment Number:</label>
-      <input
-        type="text"
-        id="assignment-number"
-        name="number"
-        placeholder="e.g. ( 5 ) for HWK-5"
-        required
-      />
-
-      <label for="assignment-max">Max Score:</label>
-      <input
-        type="number"
-        id="assignment-max"
-        name="maxScore"
-        placeholder="e.g. 10"
-        required
-      />
-
-      <label for="assignment-date">Date Given:</label>
-      <input type="date" id="assignment-date" name="dateGiven" required />
-
+      <label>Assignment Number:</label>
+      <input type="text" id="assignment-number" placeholder="e.g. 5" required />
+      <label>Max Score:</label>
+      <input type="number" id="assignment-max" placeholder="e.g. 10" required />
+      <label>Date Given:</label>
+      <input type="date" id="assignment-date" required />
       <button id="saveAssignment" type="submit">Enter Student Scores</button>
     </form>
 
-    <!-- This is the table with the students in the cohort, which has to be auto-pulled -->
     <div id="grading-container" class="hidden">
       <div class="grading-header">
-        <h3 id="grading-title">Grading: Mathematics (HWK-5)</h3>
-        <span id="grading-subtitle">Max Score: 10</span>
+        <h3 id="grading-title">Grading</h3>
+        <span id="grading-subtitle">Max Score: --</span>
       </div>
-
       <table class="grading-table">
         <thead>
           <tr>
@@ -167,7 +113,6 @@
         </thead>
         <tbody id="student-list-body"></tbody>
       </table>
-
       <div class="grading-actions">
         <button id="save-scores-btn" class="activity-btn primary">
           Save & Exit
@@ -175,111 +120,93 @@
       </div>
     </div>
 
-    <form id="studentForm" class="hidden">
+    <form id="Exam-Entry-Info" class="hidden">
       <h3>Exam Entry - Step 1</h3>
-
-      <label for="grade">Basic:</label>
-      <input list="classOptions" type="text" id="grade" required />
-
-      <label for="term">Term:</label>
-      <input list="termOptions" id="term" value="2" required />
-
-      <label for="year">Year:</label>
-      <input list="yearOptions" id="year" value="2026" required />
-
-      <label for="studentName">Student Name:</label>
+      <label>Class:</label>
+      <input type="text" id="grade" readonly required />
+      <label>Term:</label>
+      <input type="text" id="term" readonly value="2" required />
+      <label>Year:</label>
+      <input type="text" id="year" readonly value="2026" required />
+      <label>Subject Name:</label>
       <input
         type="text"
-        id="studentName"
-        placeholder="Tap to select student..."
+        id="subjectName"
+        placeholder="Tap to select subject..."
         readonly
         required
       />
-
-      <div id="picker-overlay" class="pk-overlay hidden">
-        <div class="pk-window">
-          <div class="pk-header">
-            <h2>Select Student</h2>
-            <button
-              type="button"
-              id="close-picker-btn"
-              class="modal-close-btn"
-              style="width: auto; padding: 10px 20px"
-            >
-              Close
-            </button>
-          </div>
-
-          <div class="pk-search-area">
-            <input
-              type="text"
-              id="picker-search"
-              placeholder="Search by name..."
-              autocomplete="off"
-            />
-          </div>
-
-          <div id="picker-list" class="pk-body"></div>
-
-          <div class="pk-footer">
-            <small style="color: #718096">Exam Entry System</small>
-            <small
-              >Total:
-              <span id="picker-total-count" style="font-weight: bold"
-                >0</span
-              ></small
-            >
-          </div>
-        </div>
-      </div>
-
       <button id="goBackToHomePageFromStudentForm" type="button">
         Go Back Home
       </button>
-
-      <button id="Next-Student-Form" type="submit">Next</button>
+      <button id="Next-Exam-Entry-Info" type="submit">Next</button>
     </form>
 
-    <form id="examScoresForm" class="hidden">
-      <h3>Subject Scores</h3>
-
-      <div id="dynamic-subjects-container"></div>
-
-      <button id="Next-Exam-Scores-Form" type="submit">
-        Next - Performance Details
-      </button>
-    </form>
+    <!-- Exam Grading Container -->
+    <div id="exam-grading-container" class="hidden">
+      <div class="exam-grading-header">
+        <h3 id="exam-grading-title">Subject Grading</h3>
+      </div>
+      <div class="exam-table-responsive">
+        <table class="exam-grading-table">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th style="text-align: center; width: 100px">Score</th>
+            </tr>
+          </thead>
+          <tbody id="exam-student-list-body"></tbody>
+        </table>
+      </div>
+      <div class="exam-grading-actions">
+        <button id="save-exam-scores-btn" class="activity-btn primary">
+          <span class="material-symbols-outlined">save</span> Save Exam Records
+        </button>
+      </div>
+    </div>
 
     <form id="ovrPerformance" class="hidden">
-      <label for="contributionScore">Contribution Score (CON):</label>
-      <input
-        type="number"
-        id="con"
-        placeholder="0-5"
-        min="0"
-        max="5"
-        required
-      />
-      <label for="attendance">Attendance:</label>
+      <label>Contribution Score (CON):</label>
+      <input type="number" id="con" placeholder="0-5" required />
+      <label>Attendance:</label>
       <input
         type="number"
         id="attendance"
         placeholder="Max: 78 days"
         required
       />
-
-      <label for="attitude">Attitude:</label>
-      <input list="attitudeOptions" type="text" id="attitude" required />
-
-      <label for="character">Character/Conduct:</label>
-      <input list="characterOptions" type="text" id="character" required />
-
-      <label for="interest">Interest:</label>
-      <input list="interestOptions" type="text" id="interest" required />
-
-      <label for="ct-remarks">Class Teacher's Remarks:</label>
-      <input list="remarksOptions" type="text" id="ct-remarks" required />
-
+      <label>Attitude:</label>
+      <input
+        type="text"
+        id="attitude"
+        readonly
+        placeholder="Select Attitude"
+        required
+      />
+      <label>Character/Conduct:</label>
+      <input
+        type="text"
+        id="character"
+        readonly
+        placeholder="Select Conduct"
+        required
+      />
+      <label>Interest:</label>
+      <input
+        type="text"
+        id="interest"
+        readonly
+        placeholder="Select Interest"
+        required
+      />
+      <label>Class Teacher's Remarks:</label>
+      <input
+        type="text"
+        id="ct-remarks"
+        readonly
+        placeholder="Select Remarks"
+        required
+      />
       <div class="action-buttons">
         <button id="saveStudentBtn" type="button">Save Student</button>
         <button id="nextStudentBtn" type="button">Enter Next Student</button>
@@ -288,120 +215,51 @@
           Go Back Home
         </button>
       </div>
-
-      <select id="studentDropdown" class="hidden">
-        <option value="">-- Select Student --</option>
-      </select>
+      <select id="studentDropdown" class="hidden"></select>
     </form>
 
-    <datalist id="classOptions">
-      <option value="KG 1"></option>
-      <option value="KG 2"></option>
-      <option value="Basic 1"></option>
-      <option value="Basic 2"></option>
-      <option value="Basic 3"></option>
-      <option value="Basic 4"></option>
-      <option value="Basic 5"></option>
-      <option value="Basic 6"></option>
-      <option value="Basic 7"></option>
-      <option value="Basic 8"></option>
-      <option value="Basic 9"></option>
-    </datalist>
-    <datalist id="termOptions">
-      <option value="1"></option>
-      <option value="2"></option>
-      <option value="3"></option>
-    </datalist>
-    <datalist id="yearOptions">
-      <option value="2026"></option>
-    </datalist>
+    <!-- UNIVERSAL PICKER  -->
 
-    <datalist id="attitudeOptions">
-      <!-- The numbers were just added so that teachers could easily
-        choose the options without writing the whole sentence -->
-      <option
-        value="(1) Demonstrates a positive attitude towards learning."
-      ></option>
-      <option
-        value="(2) Approaches tasks with confidence and determination."
-      ></option>
-      <option
-        value="(3) Maintains a respectful and cooperative attitude in class."
-      ></option>
-      <option
-        value="(4) Shows enthusiasm but needs to sustain focus consistently."
-      ></option>
-      <option
-        value="(5) Is generally attentive and eager to participate."
-      ></option>
-    </datalist>
+    <div id="u-picker-overlay" class="pk-overlay hidden">
+      <div class="pk-window">
+        <div class="pk-header">
+          <h2 id="u-picker-title">Select Item</h2>
+          <button
+            id="close-u-picker"
+            class="modal-close-btn"
+            style="width: auto; padding: 8px 20px"
+          >
+            Close
+          </button>
+        </div>
 
-    <datalist id="characterOptions">
-      <option
-        value="(1) Displays honesty and integrity in all activities."
-      ></option>
-      <option value="(2) Respects authority and the rights of others."></option>
-      <option
-        value="(3) Polite and well-behaved both inside and outside the classroom."
-      ></option>
-      <option
-        value="(4) Needs occasional reminders to follow classroom rules."
-      ></option>
-      <option
-        value="(5) Consistently demonstrates self-discipline and maturity."
-      ></option>
-    </datalist>
+        <div class="pk-search-area">
+          <input
+            type="text"
+            id="u-picker-search"
+            placeholder="Search..."
+            autocomplete="off"
+          />
+        </div>
 
-    <datalist id="interestOptions">
-      <option
-        value="(1) Shows keen interest in academic work and extracurricular activities."
-      ></option>
-      <option value="(2) Is curious and asks thoughtful questions."></option>
-      <option
-        value="(3) Maintains steady interest but requires encouragement in some subjects."
-      ></option>
-      <option
-        value="(4) Demonstrates a strong desire to explore new ideas."
-      ></option>
-      <option
-        value="(5) Needs to develop greater interest in independent reading and research."
-      ></option>
-    </datalist>
+        <div id="u-picker-list" class="pk-body">
+          <div class="loading">Loading items...</div>
+        </div>
 
-    <datalist id="remarksOptions">
-      <option
-        value="(1) A hardworking and responsible student; keep up the good effort."
-      ></option>
-      <option
-        value="(2) Shows steady progress; should continue to build confidence."
-      ></option>
-      <option
-        value="(3) Has potential to excel further with greater concentration."
-      ></option>
-      <option
-        value="(4) A pleasant student to teach; should aim for consistency."
-      ></option>
-      <option
-        value="(5) Needs to be more attentive in class to maximize full potential."
-      ></option>
-    </datalist>
-
-    <!-- MODAL WINDOW -->
-
+        <div class="pk-footer">
+          <small id="u-picker-stat">Items available</small>
+        </div>
+      </div>
+    </div>
+    <!-- VIEW ALL STUDENTS MODAL WINDOW -->
     <div id="modal-overlay" class="modal-overlay hidden">
-      <div
-        id="directory-modal"
-        class="modal-window"
-        role="dialog"
-        aria-labelledby="modal-title"
-      >
+      <div id="directory-modal" class="modal-window">
         <div class="modal-header">
           <h2 id="modal-title">Student Directory</h2>
           <button id="close-modal-btn" class="modal-close-btn activity-btn">
             Close
           </button>
         </div>
-
         <div class="modal-actions">
           <input
             type="text"
@@ -409,15 +267,14 @@
             placeholder="Search by name or ID..."
           />
         </div>
-
         <div id="directory-list" class="modal-body"></div>
-
         <div class="modal-footer">
           <small>Total Students: <span id="total-count">0</span></small>
+          <small id="sync-status" class="sync-status">Status: Unknown</small>
         </div>
       </div>
     </div>
 
-    <script src="./rcDataCollection/index.js"></script>
+    <script type="module" src="./js/App.js"></script>
   </body>
 </html>

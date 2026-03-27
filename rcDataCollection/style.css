@@ -260,6 +260,111 @@ button:hover {
 }
 
 /* ============================================================
+   6.5. EXAM GRADING TABLE (Clean & Modern Design)
+============================================================ */
+.exam-grading-header {
+  text-align: center;
+  margin-bottom: 25px;
+  background-color: var(--bg-muted) !important;
+  padding: 18px;
+  border-radius: 12px;
+  border-left: 5px solid var(--primary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.exam-grading-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-heading) !important;
+}
+
+.exam-grading-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 25px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.exam-grading-table th {
+  text-align: left;
+  padding: 14px 18px;
+  background-color: var(--bg-header) !important;
+  color: var(--text-heading) !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border-main);
+}
+
+.exam-grading-table th:last-child {
+  text-align: center;
+}
+
+.exam-grading-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-light);
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  font-size: 0.95rem;
+}
+
+.exam-grading-table td:first-child {
+  font-weight: 500;
+  color: var(--text-heading) !important;
+}
+
+.exam-grading-table td:last-child {
+  text-align: center;
+}
+
+.exam-grading-table tbody tr:hover {
+  background-color: var(--bg-hover) !important;
+  transition: background-color 0.2s ease;
+}
+
+.exam-batch-input {
+  width: 85px;
+  height: 40px;
+  padding: 10px 12px;
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  border-radius: 8px;
+  border: 2px solid var(--border-input);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.exam-batch-input:focus {
+  border-color: var(--primary) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+  background-color: #ffffff !important;
+}
+
+.exam-batch-input::placeholder {
+  color: var(--text-muted) !important;
+  font-weight: 400;
+}
+
+.exam-grading-actions {
+  margin-top: 25px;
+  text-align: center;
+  padding: 18px;
+  background-color: var(--bg-surface) !important;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================
    7. MODAL WINDOWS (Directory & Picker Shared Base)
 ============================================================ */
 .modal-overlay,
@@ -297,7 +402,7 @@ button:hover {
 }
 
 .pk-window {
-  width: 95%;
+  width: 60%;
   max-width: 550px;
   border-radius: 16px;
 }
@@ -499,16 +604,38 @@ button:hover {
   background-color: var(--bg-footer) !important;
   color: var(--text-main) !important;
   border-radius: 0 0 12px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .modal-footer {
   text-align: right;
 }
-.pk-footer {
-  padding: 12px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+#sync-status {
+  font-size: 0.9rem;
+  color: #ffffff;
+  background: #3b82f6;
+  border-radius: 999px;
+  padding: 4px 12px;
+  border: 1px solid #1d4ed8;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+#sync-status.cloud-synced {
+  background: #10b981;
+  border-color: #047857;
+}
+
+#sync-status.offline-mode {
+  background: #ef4444;
+  border-color: #b91c1c;
+}
+
+#sync-status.syncing {
+  background: #f59e0b;
+  border-color: #b45309;
 }
 
 /* States */
@@ -631,4 +758,168 @@ button:hover {
     height: 45px;
     text-align: center;
   }
+
+  /* Exam Grading Table Mobile Cards */
+  #exam-grading-container,
+  .exam-grading-table,
+  .exam-grading-table tbody {
+    width: 100%;
+    display: block;
+  }
+
+  .exam-grading-table thead {
+    display: none;
+  }
+
+  .exam-grading-table tr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-surface) !important;
+    margin-bottom: 14px;
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-light);
+    width: 100%;
+    transition: background-color 0.2s ease;
+  }
+
+  .exam-grading-table tr:hover {
+    background-color: var(--bg-hover) !important;
+  }
+
+  .exam-grading-table td {
+    border-bottom: none;
+    padding: 0;
+    background: transparent !important;
+  }
+
+  .exam-grading-table td:first-child {
+    font-weight: 600;
+    font-size: 16px;
+    flex: 1;
+    padding-right: 12px;
+    word-break: break-word;
+    color: var(--text-heading) !important;
+  }
+
+  .exam-batch-input {
+    width: 80px !important;
+    height: 44px;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: var(--bg-surface) !important;
+    border: 2px solid var(--border-input);
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .exam-batch-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px var(--primary-glow);
+  }
+}
+
+/* Universal Picker CSS */
+
+/* --- UNIVERSAL PICKER STYLES --- */
+
+/* ============================================================
+   REFINED UNIVERSAL PICKER (Matching Modal Style)
+============================================================ */
+
+/* The window itself is already handled by .pk-window in Section 7 */
+
+/* Override/Refine the Search Wrapper */
+.pk-search-area {
+  padding: 12px 20px;
+  background-color: var(--bg-search) !important;
+  border-bottom: 1px solid var(--border-main);
+}
+
+#u-picker-search {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+#u-picker-search:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+  outline: none;
+}
+
+/* List Item Styling */
+.pk-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  margin-bottom: 6px;
+  background-color: var(--bg-surface) !important;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pk-item:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--border-focus) !important;
+  transform: translateX(4px);
+}
+
+.pk-item:active {
+  transform: translateX(0px);
+}
+
+/* Text inside items */
+.pk-name {
+  font-weight: 600;
+  color: var(--text-dark) !important;
+  font-size: 15px;
+}
+
+.pk-id {
+  font-family: monospace;
+  font-size: 11px;
+  background-color: var(--bg-muted) !important;
+  color: var(--text-id) !important;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Scrollbar for the Picker Body */
+.pk-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pk-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pk-body::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 10px;
+}
+
+/* VALIDATE NUMBER RANGE */
+
+/* --- VALIDATION FEEDBACK --- */
+
+.input-error-flash {
+  border-color: #e53e3e !important; /* A strong red */
+  background-color: #fff5f5 !important; /* A very light red tint */
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2) !important;
+  transition: all 0.2s ease-in-out;
 }
