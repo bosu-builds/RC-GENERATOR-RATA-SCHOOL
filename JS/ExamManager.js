@@ -71,7 +71,10 @@ export const initExamFlow = () => {
   // Next student button
   if (nextStudentBtn) {
     nextStudentBtn.addEventListener("click", () => {
-      [examEntryInfoFormElement, document.getElementById("ovrPerformance")].forEach((f) => f.reset());
+      [
+        examEntryInfoFormElement,
+        document.getElementById("ovrPerformance"),
+      ].forEach((f) => f.reset());
       currentStudentId = "";
       examEntryInfoFormElement.classList.remove("hidden");
       document.getElementById("ovrPerformance").classList.add("hidden");
@@ -208,29 +211,32 @@ export const saveExamScores = async () => {
     const examId = inputs[0]?.dataset.examId;
     if (examId) {
       // Parse classKey from examId (format: subjectCode-subjectId-classKey)
-      const parts = examId.split('-');
-      const classKey = parts.slice(2).join('-');
+      const parts = examId.split("-");
+      const classKey = parts.slice(2).join("-");
 
       // Determine level from classKey
       let level;
-      if (classKey.startsWith('KG')) {
-        level = 'KG';
+      if (classKey.startsWith("KG")) {
+        level = "KG";
       } else {
-        const num = parseInt(classKey.split('-')[0].slice(1));
-        if (num >= 7) level = 'JHS';
-        else if (num >= 4) level = 'Upper Primary';
-        else level = 'Lower Primary';
+        const num = parseInt(classKey.split("-")[0].slice(1));
+        if (num >= 7) level = "JHS";
+        else if (num >= 4) level = "Upper Primary";
+        else level = "Lower Primary";
       }
 
       // Fetch all students in the class
-      const allStudents = await db.master_records.where("classKey").equals(classKey).toArray();
+      const allStudents = await db.master_records
+        .where("classKey")
+        .equals(classKey)
+        .toArray();
 
       // Collect entered subject codes from examScores
       const enteredSubjectCodes = new Set();
       allStudents.forEach((stu) => {
         if (stu.examScores) {
           Object.keys(stu.examScores).forEach((eid) => {
-            const subjectCode = eid.split('-')[0];
+            const subjectCode = eid.split("-")[0];
             enteredSubjectCodes.add(subjectCode);
           });
         }
@@ -238,7 +244,9 @@ export const saveExamScores = async () => {
 
       // Get all possible subjects for the level
       const allSubjectCodes = schoolSubjects[level]?.map((s) => s.code) || [];
-      const remainingSubjectCodes = allSubjectCodes.filter((code) => !enteredSubjectCodes.has(code));
+      const remainingSubjectCodes = allSubjectCodes.filter(
+        (code) => !enteredSubjectCodes.has(code),
+      );
 
       // Count students with scores for this specific exam
       const studentsWithScores = cloudUpdates.filter((stu) => {
@@ -247,20 +255,27 @@ export const saveExamScores = async () => {
       }).length;
 
       // Map codes to names
-      const enteredSubjects = Array.from(enteredSubjectCodes).map((code) =>
-        schoolSubjects[level]?.find((s) => s.code === code)?.name || code
-      ).join(', ');
+      const enteredSubjects = Array.from(enteredSubjectCodes)
+        .map(
+          (code) =>
+            schoolSubjects[level]?.find((s) => s.code === code)?.name || code,
+        )
+        .join(", ");
 
-      const remainingSubjects = remainingSubjectCodes.map((code) =>
-        schoolSubjects[level]?.find((s) => s.code === code)?.name || code
-      ).join(', ');
+      const remainingSubjects = remainingSubjectCodes
+        .map(
+          (code) =>
+            schoolSubjects[level]?.find((s) => s.code === code)?.name || code,
+        )
+        .join(", ");
 
       // Build detailed alert message
-      const message = `✅ Successfully saved ${cloudUpdates.length} exam records!\n\n` +
+      const message =
+        `✅ Successfully saved ${cloudUpdates.length} exam records!\n\n` +
         `📊 Exam Progress for ${classKey}:\n` +
         `- Students with scores entered: ${studentsWithScores}/${cloudUpdates.length}\n` +
-        `- Subjects completed: ${enteredSubjects || 'None'}\n` +
-        `- Subjects remaining: ${remainingSubjects || 'None'}`;
+        `- Subjects Entered: ${enteredSubjects || "None"}\n` +
+        `- Subjects remaining: ${remainingSubjects || "None"}`;
 
       alert(message);
     } else {
