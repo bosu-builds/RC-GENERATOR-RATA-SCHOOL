@@ -271,7 +271,7 @@ export const saveExamScores = async () => {
 
       // Build detailed alert message
       const message =
-        `✅ Successfully saved ${cloudUpdates.length} exam records!\n\n` +
+        `✅ Successfully saved ${cloudUpdates.length} students' exam records!\n\n` +
         `📊 Exam Progress for ${classKey}:\n` +
         `- Students with scores entered: ${studentsWithScores}/${cloudUpdates.length}\n` +
         `- Subjects Entered: ${enteredSubjects || "None"}\n` +
