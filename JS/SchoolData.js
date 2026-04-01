@@ -73,7 +73,6 @@ export const pickerData = {
     "Home-Work (HWK)",
     "Class Test (CT)",
     "Project Work (PW)",
-    "Group Work (GW)",
   ],
   attitudes: [
     "(1) Demonstrates a positive attitude towards learning.",
