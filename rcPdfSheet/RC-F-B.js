@@ -34,7 +34,7 @@ const calculateWeightedSBA = (granularScores, searchKey, globalCon) => {
     return Math.round(totalWeightedSBA);
 
   const records = granularScores[actualKey];
-  const weights = { CT: 7, PW: 6, CE: 5, HWK: 4, GW: 3 };
+  const weights = { CT: 7, PW: 6, CE: 5, HWK: 4 };
 
   Object.keys(weights).forEach((typeId) => {
     const categoryAssignments = records.filter((r) =>
