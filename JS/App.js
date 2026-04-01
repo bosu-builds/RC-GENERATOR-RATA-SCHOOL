@@ -4,9 +4,14 @@ import { pickerData, schoolSubjects } from "./SchoolData.js";
 import { openDirectory } from "./InterfaceManager.js";
 import { universalPicker } from "./InterfaceManager.js";
 import { pickerMap } from "./InterfaceManager.js";
-import { initUniversalPicker, initActionButtons, setupBackButtons } from "./InterfaceManager.js";
+import {
+  initUniversalPicker,
+  initActionButtons,
+  setupBackButtons,
+} from "./InterfaceManager.js";
 import { initStudentRegistration } from "./StudentRegistration.js";
 import { initAssignmentFlow } from "./AssignmentManager.js";
+import { initSBAFlow } from "./SBAManager.js";
 import { initExamFlow } from "./ExamManager.js";
 import { initReportCardDropdown } from "./ReportCardManager.js";
 import { syncAllData } from "./CloudSync.js";
@@ -15,15 +20,17 @@ import { getLevelByGrade, validateNumberRange } from "./HelperTools.js";
 // SPECIAL CASE: Subjects (Depends on the Grade selected)
 // This connects your Subject input to the Picker
 const subjectName = document.getElementById("subjectName");
-subjectName.onclick = () => {
-  const grade = document.getElementById("grade").value;
-  if (!grade) return alert("Please select a class first!");
+if (subjectName) {
+  subjectName.onclick = () => {
+    const grade = document.getElementById("grade").value;
+    if (!grade) return alert("Please select a class first!");
 
-  const level = getLevelByGrade(grade); // e.g., "primary" or "jhs"
-  const subjects = schoolSubjects[level].map((s) => s.name);
+    const level = getLevelByGrade(grade); // e.g., "primary" or "jhs"
+    const subjects = schoolSubjects[level]?.map((s) => s.name) || [];
 
-  universalPicker.open("subjectName", "Select Subject", subjects);
-};
+    universalPicker.open("subjectName", "Select Subject", subjects);
+  };
+}
 
 // UI ELEMENTS & NAVIGATION
 const activityBox = document.getElementById("activity-box");
@@ -85,6 +92,7 @@ initUniversalPicker();
 initActionButtons();
 setupBackButtons();
 initStudentRegistration();
-initAssignmentFlow();
+initSBAFlow();
+// initAssignmentFlow();
 initExamFlow();
 initReportCardDropdown();

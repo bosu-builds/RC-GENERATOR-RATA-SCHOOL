@@ -10,7 +10,8 @@ export const syncAllData = async (silent = false) => {
     return;
   }
   try {
-    const { data, error } = await _supabase      .from("students_sync")
+    const { data, error } = await _supabase
+      .from("students_sync")
       .select("data");
 
     if (error) throw error;
@@ -30,7 +31,7 @@ export const syncAllData = async (silent = false) => {
 window.onload = () => syncAllData(true);
 
 // 2. EXPORT: Added export so App.js can use this for saving students
-export const saveToCloudDirect = async (studentData) => {
+export const saveToCloudDirect = async (studentData, { local = true } = {}) => {
   if (!_supabase) return alert("Supabase not initialized.");
   if (!navigator.onLine) return alert("⚠️ Device offline.");
 
@@ -50,6 +51,10 @@ export const saveToCloudDirect = async (studentData) => {
         examScores: {
           ...(cloudStudent.examScores || {}),
           ...(studentData.examScores || {}),
+        },
+        sbaScores: {
+          ...(cloudStudent.sbaScores || {}),
+          ...(studentData.sbaScores || {}),
         },
         performance: {
           ...(cloudStudent.performance || {}),
@@ -74,7 +79,7 @@ export const saveToCloudDirect = async (studentData) => {
       });
 
     if (upsertError) throw upsertError;
-    await db.master_records.put(finalData);
+    if (local) await db.master_records.put(finalData);
     return true;
   } catch (err) {
     console.error("Save Error:", err);

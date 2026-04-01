@@ -31,7 +31,7 @@
         <span class="material-symbols-outlined">person_add</span> Add Students
       </button>
       <button id="sba-btn" class="activity-btn secondary">
-        <span class="material-symbols-outlined">add_task</span> Enter Assignment
+        <span class="material-symbols-outlined">add_task</span> Enter SBA
       </button>
       <button id="exam-btn" class="activity-btn primary">
         <span class="material-symbols-outlined">edit_document</span> Enter Exams
@@ -140,6 +140,50 @@
       </button>
       <button id="Next-Exam-Entry-Info" type="submit">Next</button>
     </form>
+
+    <form id="SBA-Entry-Info" class="hidden">
+      <h3>SBA Entry - Step 1</h3>
+      <label>Class:</label>
+      <input type="text" id="sba-grade" readonly required />
+      <label>Term:</label>
+      <input type="text" id="sba-term" readonly value="2" required />
+      <label>Year:</label>
+      <input type="text" id="sba-year" readonly value="2026" required />
+      <label>Subject Name:</label>
+      <input
+        type="text"
+        id="sba-subjectName"
+        placeholder="Tap to select subject..."
+        readonly
+        required
+      />
+      <button id="goBackToHomePageFromSBAForm" type="button">
+        Go Back Home
+      </button>
+      <button id="Next-SBA-Entry-Info" type="submit">Next</button>
+    </form>
+
+    <div id="sba-grading-container" class="hidden">
+      <div class="exam-grading-header">
+        <h3 id="sba-grading-title">SBA Subject Grading</h3>
+      </div>
+      <div class="exam-table-responsive">
+        <table class="exam-grading-table">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th style="text-align: center; width: 100px">Score</th>
+            </tr>
+          </thead>
+          <tbody id="sba-student-list-body"></tbody>
+        </table>
+      </div>
+      <div class="exam-grading-actions">
+        <button id="save-sba-scores-btn" class="activity-btn primary">
+          <span class="material-symbols-outlined">save</span> Save SBA Records
+        </button>
+      </div>
+    </div>
 
     <!-- Exam Grading Container -->
     <div id="exam-grading-container" class="hidden">
