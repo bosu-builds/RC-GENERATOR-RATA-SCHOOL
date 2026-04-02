@@ -46,6 +46,73 @@ export const schoolSubjects = {
   ],
 };
 
+// ============================================
+// FORMAL SUBJECT NAMES (For Report Cards)
+// Maps ID to official/formal subject name
+// ============================================
+export const formalSubjectNames = {
+  101: "Literacy",
+  102: "Listening",
+  103: "Vocabulary",
+  104: "Alphabet",
+  105: "Phonics",
+  106: "Writing",
+  107: "Numeracy",
+  108: "Print",
+  109: "Nature Science",
+  201: "English Language",
+  202: "Mathematics",
+  203: "Integrated Science",
+  204: "History",
+  205: "Religious & Moral Education",
+  206: "Social Studies",
+  301: "Creative Arts",
+  302: "Computing",
+  303: "Creative Arts",
+  304: "Career & Technical Education",
+  401: "Twi Language",
+};
+
+// ============================================
+// SUBJECT CODE TO HTML ID MAPPING
+// Maps subject code to HTML element ID prefix
+// E.g., "Eng" → "eng", "Hist" → "history"
+// ============================================
+export const subjectCodeToHtmlId = {
+  Lit: "lit",
+  Lst: "lst",
+  Voc: "voc",
+  Alph: "alph",
+  Phon: "phon",
+  Wri: "wri",
+  Num: "num",
+  Prnt: "prnt",
+  NatSci: "natsci",
+  Eng: "eng",
+  Math: "math",
+  Sci: "sci",
+  Hist: "history",
+  RME: "rme",
+  Soc: "social",
+  CA: "arts",
+  Comp: "comp",
+  CTech: "ctech",
+  Twi: "twi",
+};
+
+// ============================================
+// GET LEVEL BY CLASS NUMBER
+// Returns the educational level based on class
+// ============================================
+export const getLevelByClassNum = (classNum) => {
+  const num = Number(classNum);
+  if (isNaN(num)) return "KG"; // Default for KG1, KG2
+  if (num >= 1 && num <= 3) return "Lower Primary";
+  if (num >= 4 && num <= 6) return "Upper Primary";
+  if (num >= 7) return "JHS";
+  return "Upper Primary"; // Fallback
+};
+
 // Map Class To Number
 
 export const mapClassToNumber = {
@@ -59,7 +126,6 @@ export const mapClassToNumber = {
   "Basic 6": 6,
   "Basic 7": 7,
   "Basic 8": 8,
-  "Basic 9": 9,
 };
 
 export const pickerData = {

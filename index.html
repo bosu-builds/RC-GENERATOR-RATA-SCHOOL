@@ -36,7 +36,46 @@
       <button id="exam-btn" class="activity-btn primary">
         <span class="material-symbols-outlined">edit_document</span> Enter Exams
       </button>
+      <button id="performance-btn" class="activity-btn secondary">
+        <span class="material-symbols-outlined">assessment</span> Enter
+        Performance
+      </button>
+      <button id="genRepCardBtn" class="activity-btn secondary">
+        <span class="material-symbols-outlined">description</span> Generate
+        Report Card
+      </button>
     </div>
+
+    <!-- Report Card Generation Form (Step 1: Select Cohort) -->
+    <form id="report-card-form" class="hidden">
+      <h3>Generate Report Card - Step 1</h3>
+      <label>Class:</label>
+      <input
+        type="text"
+        id="rc-grade"
+        readonly
+        placeholder="Select Class"
+        required
+      />
+      <label>Term:</label>
+      <input type="text" id="rc-term" readonly value="2" required />
+      <label>Year:</label>
+      <input type="text" id="rc-year" readonly value="2026" required />
+      <label>Student Name:</label>
+      <input
+        type="text"
+        id="rc-student"
+        readonly
+        placeholder="Tap to select student..."
+        required
+      />
+      <button id="goBackToHomePageFromReportCard" type="button">
+        Go Back Home
+      </button>
+      <button id="generateReportCardBtn" type="submit">
+        Generate Report Card
+      </button>
+    </form>
 
     <form id="addStudentForm" class="hidden">
       <h3>Register New Student</h3>
@@ -208,7 +247,38 @@
       </div>
     </div>
 
+    <!-- Performance Step 1: Cohort Selection -->
+    <form id="performance-step1" class="hidden">
+      <h3>Performance Entry - Step 1</h3>
+      <label>Class:</label>
+      <input
+        type="text"
+        id="perf-step1-grade"
+        readonly
+        placeholder="Select Class"
+        required
+      />
+      <label>Term:</label>
+      <input type="text" id="perf-step1-term" readonly value="2" required />
+      <label>Year:</label>
+      <input type="text" id="perf-step1-year" readonly value="2026" required />
+      <label>Student Name:</label>
+      <input
+        type="text"
+        id="perf-student"
+        readonly
+        placeholder="Tap to select student..."
+        required
+      />
+      <button id="goBackToHomePageFromPerfStep1" type="button">
+        Go Back Home
+      </button>
+      <button id="nextToPerformanceStep2" type="submit">Next</button>
+    </form>
+
+    <!-- Performance Step 2: Performance Entry -->
     <form id="ovrPerformance" class="hidden">
+      <h3>Performance Entry - Step 2</h3>
       <label>Contribution Score (CON):</label>
       <input type="number" id="con" placeholder="0-5" required />
       <label>Attendance:</label>
@@ -253,12 +323,10 @@
       <div class="action-buttons">
         <button id="saveStudentBtn" type="button">Save Student</button>
         <button id="nextStudentBtn" type="button">Enter Next Student</button>
-        <button id="genRepCardBtn" type="button">Generate Report Card</button>
         <button id="goBackToHomePageFromOvrPerformance" type="button">
           Go Back Home
         </button>
       </div>
-      <select id="studentDropdown" class="hidden"></select>
     </form>
 
     <!-- UNIVERSAL PICKER  -->

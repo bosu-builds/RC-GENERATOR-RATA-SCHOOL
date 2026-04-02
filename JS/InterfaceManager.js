@@ -173,6 +173,7 @@ export const pickerMap = [
   { id: "assignment-grade", title: "Select Class", data: pickerData.classes },
   { id: "sba-grade", title: "Select Class", data: pickerData.classes },
   { id: "grade", title: "Select Class", data: pickerData.classes },
+  { id: "rc-grade", title: "Select Class", data: pickerData.classes },
   {
     id: "assignment-type",
     title: "Assignment Type",
@@ -232,15 +233,21 @@ export const initActionButtons = () => {
   const sbaEntryForm = document.getElementById("SBA-Entry-Info");
   const examEntryInfoForm = document.getElementById("Exam-Entry-Info");
   const ovrPerformanceForm = document.getElementById("ovrPerformance");
+  const reportCardForm = document.getElementById("report-card-form");
 
   const activityAddStudent = document.getElementById("add-student-btn");
   const activitySba = document.getElementById("sba-btn");
   const activityExam = document.getElementById("exam-btn");
+  const activityReportCard = document.getElementById("genRepCardBtn");
 
   // Initialize: Hide all forms on startup
-  [addStudentForm, sbaEntryForm, examEntryInfoForm, ovrPerformanceForm].forEach(
-    (f) => f.classList.add("hidden"),
-  );
+  [
+    addStudentForm,
+    sbaEntryForm,
+    examEntryInfoForm,
+    ovrPerformanceForm,
+    reportCardForm,
+  ].forEach((f) => f.classList.add("hidden"));
 
   // Button: Add Student
   if (activityAddStudent) {
@@ -265,6 +272,14 @@ export const initActionButtons = () => {
       examEntryInfoForm.classList.remove("hidden");
     });
   }
+
+  // Button: Report Card
+  if (activityReportCard) {
+    activityReportCard.addEventListener("click", () => {
+      activityBox.classList.add("hidden");
+      reportCardForm.classList.remove("hidden");
+    });
+  }
 };
 
 // ============================================
@@ -277,6 +292,7 @@ export const setupBackButtons = () => {
   const sbaEntryInfoForm = document.getElementById("SBA-Entry-Info");
   const examEntryInfoForm = document.getElementById("Exam-Entry-Info");
   const ovrPerformanceForm = document.getElementById("ovrPerformance");
+  const reportCardForm = document.getElementById("report-card-form");
 
   const goBackFromAddStudent = document.getElementById(
     "goBackToHomePageFromAddStudent",
@@ -284,6 +300,9 @@ export const setupBackButtons = () => {
   const goBackFromSBA = document.getElementById("goBackToHomePageFromSBAForm");
   const goBackFromOvrPerformance = document.getElementById(
     "goBackToHomePageFromOvrPerformance",
+  );
+  const goBackFromReportCard = document.getElementById(
+    "goBackToHomePageFromReportCard",
   );
 
   // Go back from add student form
@@ -309,6 +328,15 @@ export const setupBackButtons = () => {
       examEntryInfoForm.reset();
       ovrPerformanceForm.reset();
       ovrPerformanceForm.classList.add("hidden");
+      activityBox.classList.remove("hidden");
+    });
+  }
+
+  // Go back from report card form
+  if (goBackFromReportCard) {
+    goBackFromReportCard.addEventListener("click", () => {
+      reportCardForm.reset();
+      reportCardForm.classList.add("hidden");
       activityBox.classList.remove("hidden");
     });
   }

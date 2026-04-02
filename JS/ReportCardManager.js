@@ -2,53 +2,106 @@
 
 // IMPORTS
 import { db } from "./Database.js";
+import { mapClassToNumber } from "./SchoolData.js";
+import { getClassKey } from "./HelperTools.js";
+import { universalPicker } from "./InterfaceManager.js";
+
+// STATE
+let lastCohortStudents = [];
 
 // ============================================
 // EXPORTED FUNCTION: Initialize report card flow
 // Called from: App.js
 // ============================================
-export const initReportCardDropdown = () => {
-  const genRepCardBtn = document.getElementById("genRepCardBtn");
-  const studentDropdown = document.getElementById("studentDropdown");
+export const initReportCardFlow = () => {
+  const reportCardForm = document.getElementById("report-card-form");
+  const rcStudent = document.getElementById("rc-student");
+  const generateReportCardBtn = document.getElementById(
+    "generateReportCardBtn",
+  );
 
-  // Button: Generate report card (populates dropdown)
-  if (genRepCardBtn) {
-    genRepCardBtn.addEventListener("click", async () => {
-      await populateStudentDropdown();
-    });
+  // Student picker: Open picker with students from selected cohort
+  if (rcStudent) {
+    rcStudent.onclick = async () => {
+      const grade = document.getElementById("rc-grade").value;
+      const term = document.getElementById("rc-term").value;
+      const year = document.getElementById("rc-year").value;
+
+      if (!grade) {
+        alert("Please select a class first!");
+        return;
+      }
+
+      try {
+        // Load students for this cohort
+        const classNum = mapClassToNumber[grade];
+        const classKey = getClassKey(classNum, term, year);
+
+        const students = await db.master_records
+          .where("classKey")
+          .equals(classKey)
+          .toArray();
+
+        if (!students || students.length === 0) {
+          alert("No students found in this cohort.");
+          return;
+        }
+
+        // Cache students for later use
+        lastCohortStudents = students;
+
+        // Build student list for picker
+        const studentList = students
+          .sort((a, b) => (a.info.name || "").localeCompare(b.info.name || ""))
+          .map((s) => s.info.name);
+
+        // Open universal picker
+        universalPicker.open("rc-student", "Select Student", studentList);
+      } catch (error) {
+        console.error("Error loading students:", error);
+        alert("Failed to load students. Please try again.");
+      }
+    };
   }
 
-  // Dropdown: Navigate to report card
-  if (studentDropdown) {
-    studentDropdown.addEventListener("change", function () {
-      if (this.value) {
-        const [ck, sid] = this.value.split("::");
-        window.location.href = `rcPdfSheet/RC-F-B.html?classKey=${ck}&studentId=${sid}`;
+  // Form submission: Generate report card
+  if (generateReportCardBtn) {
+    generateReportCardBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const studentName = document.getElementById("rc-student").value;
+      const grade = document.getElementById("rc-grade").value;
+      const term = document.getElementById("rc-term").value;
+      const year = document.getElementById("rc-year").value;
+
+      if (!studentName || !grade) {
+        alert("Please select a class and student.");
+        return;
+      }
+
+      try {
+        // Find the selected student in the cached list
+        const selectedStudent = lastCohortStudents.find(
+          (s) => s.info.name === studentName,
+        );
+
+        if (!selectedStudent) {
+          alert("Student not found. Please select again.");
+          return;
+        }
+
+        // Navigate to report card page
+        const classKey = selectedStudent.classKey;
+        const studentId = selectedStudent.id;
+
+        window.location.href = `rcPdfSheet/RC-F-B.html?classKey=${classKey}&studentId=${studentId}`;
+      } catch (error) {
+        console.error("Error generating report card:", error);
+        alert("Failed to generate report card. Please try again.");
       }
     });
   }
 };
 
-// ============================================
-// EXPORTED FUNCTION: Populate student dropdown
-// Called from: initReportCardDropdown() (gen button)
-// ============================================
-export const populateStudentDropdown = async () => {
-  const data = await db.master_records.toArray();
-  const studentDropdown = document.getElementById("studentDropdown");
-
-  studentDropdown.innerHTML = '<option value="">-- Select Student --</option>';
-
-  // Sort alphabetically by student name
-  data
-    .sort((a, b) => a.info.name.localeCompare(b.info.name))
-    .forEach((s) => {
-      const opt = document.createElement("option");
-      opt.value = `${s.classKey}::${s.id}`;
-      opt.textContent = `${s.info.name} (${s.info.class})`;
-      studentDropdown.appendChild(opt);
-    });
-
-  // Show dropdown
-  studentDropdown.classList.remove("hidden");
-};
+// Export alias for backward compatibility
+export const initReportCardDropdown = initReportCardFlow;

@@ -1,6 +1,7 @@
 "use strict";
 
 import { pickerData, schoolSubjects } from "./SchoolData.js";
+import { db } from "./Database.js";
 import { openDirectory } from "./InterfaceManager.js";
 import { universalPicker } from "./InterfaceManager.js";
 import { pickerMap } from "./InterfaceManager.js";
@@ -13,9 +14,15 @@ import { initStudentRegistration } from "./StudentRegistration.js";
 import { initAssignmentFlow } from "./AssignmentManager.js";
 import { initSBAFlow } from "./SBAManager.js";
 import { initExamFlow } from "./ExamManager.js";
-import { initReportCardDropdown } from "./ReportCardManager.js";
+import { initReportCardFlow } from "./ReportCardManager.js";
+import { initPerformanceFlow } from "./PerformanceManager.js";
 import { syncAllData } from "./CloudSync.js";
 import { getLevelByGrade, validateNumberRange } from "./HelperTools.js";
+
+// Ensure database is initialized
+await db.open().catch((err) => {
+  console.error("Failed to open database:", err);
+});
 
 // SPECIAL CASE: Subjects (Depends on the Grade selected)
 // This connects your Subject input to the Picker
@@ -43,10 +50,8 @@ const dynamicSubjectsContainer = document.getElementById(
   "dynamic-subjects-container",
 );
 const ovrPerformanceForm = document.getElementById("ovrPerformance");
-const genRepCardBtn = document.getElementById("genRepCardBtn");
 const saveStuBtn = document.getElementById("saveStudentBtn");
 const nextStudentBtn = document.getElementById("nextStudentBtn");
-const studentDropdown = document.getElementById("studentDropdown");
 const addStudentForm = document.getElementById("addStudentForm");
 const assignmentForm = document.getElementById("assignmentForm");
 const activityAddStudent = document.getElementById("add-student-btn");
@@ -92,7 +97,8 @@ initUniversalPicker();
 initActionButtons();
 setupBackButtons();
 initStudentRegistration();
+initAssignmentFlow();
 initSBAFlow();
-// initAssignmentFlow();
 initExamFlow();
-initReportCardDropdown();
+initReportCardFlow();
+initPerformanceFlow();
