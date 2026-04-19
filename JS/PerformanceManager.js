@@ -22,7 +22,9 @@ const backFromStep1Btn = document.getElementById(
 const ovrPerformanceForm = document.getElementById("ovrPerformance");
 const perfStudent = document.getElementById("perf-student");
 const saveStudentBtn = document.getElementById("saveStudentBtn");
-const nextStudentBtn = document.getElementById("nextStudentBtn");
+const nextPerformanceStudentBtn = document.getElementById(
+  "nextPerformanceStudentBtn",
+);
 const goBackBtn = document.getElementById("goBackToHomePageFromOvrPerformance");
 
 // Performance form inputs
@@ -97,9 +99,9 @@ function setupStep1Handlers() {
 
   // Next button from Step 1 to Step 2
   if (nextToStep2Btn) {
-    nextToStep2Btn.addEventListener("click", (e) => {
+    nextToStep2Btn.addEventListener("click", async (e) => {
       e.preventDefault();
-      moveToStep2();
+      await moveToStep2();
     });
   }
 }
@@ -120,9 +122,9 @@ function setupStep2Handlers() {
     saveStudentBtn.addEventListener("click", savePerformanceData);
   }
 
-  if (nextStudentBtn) {
-    nextStudentBtn.addEventListener("click", () => {
-      savePerformanceData();
+  if (nextPerformanceStudentBtn) {
+    nextPerformanceStudentBtn.addEventListener("click", async () => {
+      await savePerformanceData();
       clearPerformanceForm();
       // Go back to step 1 to select next student
       hidePerformanceStep2();
@@ -157,7 +159,7 @@ function hidePerformanceStep2() {
   currentCohort = null;
 }
 
-function moveToStep2() {
+async function moveToStep2() {
   const grade = perfStep1Grade?.value;
   const term = perfStep1Term?.value;
   const year = perfStep1Year?.value;
@@ -173,22 +175,33 @@ function moveToStep2() {
     return;
   }
 
-  // Find the student from cached cohort students
-  if (lastCohortStudents && lastCohortStudents.length > 0) {
-    const selectedStudent = lastCohortStudents.find(
-      (s) => s.info.name === student,
-    );
-    if (selectedStudent) {
-      currentStudent = selectedStudent;
-      loadStudentPerformance(selectedStudent);
-    }
-  }
-
   // Generate classKey like "KG1-T2-Y2026", "B4-T2-Y2026"
   const classNum = mapClassToNumber[grade];
   const classKey = grade.startsWith("KG")
     ? `${String(classNum)}-T${term}-Y${year}`
     : `B${classNum}-T${term}-Y${year}`;
+
+  // Reload student from DATABASE (not from stale cache) to get latest saved data
+  try {
+    const dbStudents = await db.master_records
+      .where("classKey")
+      .equals(classKey)
+      .toArray();
+
+    const selectedStudent = dbStudents.find((s) => s.info.name === student);
+
+    if (selectedStudent) {
+      currentStudent = selectedStudent;
+      loadStudentPerformance(selectedStudent);
+    } else {
+      alert("Student not found. Please try again.");
+      return;
+    }
+  } catch (error) {
+    console.error("Error loading student from database:", error);
+    alert("Error loading student. Please try again.");
+    return;
+  }
 
   currentCohort = {
     class: grade,
@@ -291,7 +304,19 @@ async function loadStudentsForCohort(classKey) {
 }
 
 function loadStudentPerformance(student) {
-  if (!student || !student.performance) return;
+  if (!student) {
+    console.warn("No student object provided");
+    return;
+  }
+
+  if (!student.performance) {
+    console.warn(
+      "Student has no performance data:",
+      student.id,
+      student.info?.name,
+    );
+    return;
+  }
 
   const perf = student.performance;
 
@@ -327,9 +352,27 @@ async function savePerformanceData() {
       attendance: attendance || "",
     };
 
+    console.log("savePerformanceData() - CREATE performanceData object:", {
+      con: con,
+      attitude: attitude,
+      interest: interest,
+      character: character,
+      ctRemarks: ctRemarks,
+      attendance: attendance,
+    });
+    console.log(
+      "savePerformanceData() - STRINGIFIED check:",
+      JSON.stringify(performanceData),
+    );
+
     // Update student object
     currentStudent.performance = performanceData;
     currentStudent.updatedAt = new Date().toISOString();
+
+    console.log(
+      "savePerformanceData() - Updated student obj performance:",
+      currentStudent.performance,
+    );
 
     // Save to cloud via CloudSync (cloud + local DB)
     const success = await saveToCloudDirect(currentStudent);

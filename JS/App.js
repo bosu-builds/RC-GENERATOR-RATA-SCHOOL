@@ -51,7 +51,6 @@ const dynamicSubjectsContainer = document.getElementById(
 );
 const ovrPerformanceForm = document.getElementById("ovrPerformance");
 const saveStuBtn = document.getElementById("saveStudentBtn");
-const nextStudentBtn = document.getElementById("nextStudentBtn");
 const addStudentForm = document.getElementById("addStudentForm");
 const assignmentForm = document.getElementById("assignmentForm");
 const activityAddStudent = document.getElementById("add-student-btn");

@@ -33,7 +33,8 @@ window.onload = () => syncAllData(true);
 // 2. EXPORT: Added export so App.js can use this for saving students
 export const saveToCloudDirect = async (studentData, { local = true } = {}) => {
   if (!_supabase) return alert("Supabase not initialized.");
-  if (!navigator.onLine) return alert("⚠️ Device offline.");
+  if (!navigator.onLine)
+    return alert("⚠️ Device offline. Cannot save - sync required.");
 
   try {
     const { data: cloudEntry } = await _supabase
@@ -68,6 +69,7 @@ export const saveToCloudDirect = async (studentData, { local = true } = {}) => {
       };
     }
 
+    // SAVE TO CLOUD FIRST (required for data consistency across all teachers/devices)
     const { error: upsertError } = await _supabase
       .from("students_sync")
       .upsert({
@@ -79,11 +81,25 @@ export const saveToCloudDirect = async (studentData, { local = true } = {}) => {
       });
 
     if (upsertError) throw upsertError;
-    if (local) await db.master_records.put(finalData);
+
+    // ONLY AFTER successful cloud sync, update local DB
+    if (local) {
+      try {
+        await db.master_records.put(finalData);
+        console.log("✓ Synced to cloud and updated local DB:", finalData.id);
+      } catch (localErr) {
+        console.error(
+          "Local DB update error (cloud save succeeded):",
+          localErr,
+        );
+        // Cloud succeeded, so return true even if local update fails
+      }
+    }
+
     return true;
   } catch (err) {
-    console.error("Save Error:", err);
-    alert("❌ Save failed.");
+    console.error("Cloud Save Error:", err);
+    alert("❌ Save failed. Data not synced to cloud.");
     return false;
   }
 };

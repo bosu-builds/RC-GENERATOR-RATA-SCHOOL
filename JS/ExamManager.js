@@ -12,6 +12,9 @@ import {
 import { schoolSubjects } from "./SchoolData.js";
 import { universalPicker } from "./InterfaceManager.js";
 
+// STATE MANAGEMENT
+let currentStudentId = ""; // Tracks current student being examined
+
 // ============================================
 // EXPORTED FUNCTION: Initialize exam flow
 // Called from: App.js
@@ -22,10 +25,8 @@ export const initExamFlow = () => {
     "Next-Exam-Entry-Info",
   );
   const saveExamScoreBtn = document.getElementById("save-exam-scores-btn");
-  const goBackFromExamBtn = document.getElementById(
-    "goBackToHomePageFromStudentForm",
-  );
-  const nextStudentBtn = document.getElementById("nextStudentBtn");
+  const goBackFromExamBtn = document.getElementById("goBackFromExamBtn");
+  const nextExamStudentBtn = document.getElementById("nextExamStudentBtn");
   const examEntryInfoFormElement = document.getElementById("Exam-Entry-Info");
 
   // Subject picker dependency
@@ -68,9 +69,9 @@ export const initExamFlow = () => {
     });
   }
 
-  // Next student button
-  if (nextStudentBtn) {
-    nextStudentBtn.addEventListener("click", () => {
+  // Next student button (ONLY works when exam form is visible)
+  if (nextExamStudentBtn) {
+    nextExamStudentBtn.addEventListener("click", () => {
       [
         examEntryInfoFormElement,
         document.getElementById("ovrPerformance"),

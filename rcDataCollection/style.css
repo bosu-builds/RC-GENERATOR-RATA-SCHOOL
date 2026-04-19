@@ -162,7 +162,8 @@ button:hover {
 }
 
 #saveStudentBtn,
-#nextStudentBtn {
+#nextPerformanceStudentBtn,
+#nextExamStudentBtn {
   margin-bottom: 15px;
 }
 
