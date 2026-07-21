@@ -8,7 +8,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Student Info Form</title>
+    <title>Report Card Generator</title>
     <script src="./wrappers/dexie.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="./rcDataCollection/style.css" />
@@ -18,7 +18,7 @@
     />
   </head>
   <body>
-    <h2>Student Information</h2>
+    <h2>Report Card Generator</h2>
 
     <div id="activity-box" class="activity-box">
       <button id="view-students-btn" class="activity-btn secondary">
@@ -27,9 +27,9 @@
       <button id="syncVaultBtn" class="activity-btn secondary">
         🔄 Sync Master Vault
       </button>
-      <button id="add-student-btn" class="activity-btn secondary">
+      <!-- <button id="add-student-btn" class="activity-btn secondary">
         <span class="material-symbols-outlined">person_add</span> Add Students
-      </button>
+      </button> -->
       <button id="sba-btn" class="activity-btn secondary">
         <span class="material-symbols-outlined">add_task</span> Enter SBA
       </button>
@@ -40,10 +40,10 @@
         <span class="material-symbols-outlined">assessment</span> Enter
         Performance
       </button>
-      <button id="genRepCardBtn" class="activity-btn secondary">
+      <!-- <button id="genRepCardBtn" class="activity-btn secondary">
         <span class="material-symbols-outlined">description</span> Generate
         Report Card
-      </button>
+      </button> -->
     </div>
 
     <!-- Report Card Generation Form (Step 1: Select Cohort) -->
