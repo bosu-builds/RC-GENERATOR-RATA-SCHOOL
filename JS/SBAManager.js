@@ -24,6 +24,24 @@ export const initSBAFlow = () => {
   );
 
   const sbaSubjectName = document.getElementById("sba-subjectName");
+  const sbaGradingContainer = document.getElementById("sba-grading-container");
+
+  // Attach dynamic range validation once globally
+  if (sbaGradingContainer) {
+    // 1. While typing: allows '2', but clears invalid completed entries ('15', '35')
+    sbaGradingContainer.addEventListener("input", (e) => {
+      if (e.target.classList.contains("sba-batch-input")) {
+        validateNumberRange(e.target, 20, 30, false);
+      }
+    });
+
+    // 2. When leaving the box: catches single-digit or incomplete entries (e.g. typing '2' and tabbing away)
+    sbaGradingContainer.addEventListener("focusout", (e) => {
+      if (e.target.classList.contains("sba-batch-input")) {
+        validateNumberRange(e.target, 20, 30, true);
+      }
+    });
+  }
 
   if (sbaSubjectName) {
     sbaSubjectName.onclick = () => {
@@ -74,9 +92,9 @@ export const prepareSBATable = async () => {
   }
 
   const level = getLevelByGrade(grade);
-  const subjectObj = schoolSubjects[level].find((s) => s.name === subjectName);
+  const subjectObj = schoolSubjects[level]?.find((s) => s.name === subjectName);
   if (!subjectObj) {
-    return alert("Selected subject one is not found in subject list.");
+    return alert("Selected subject is not found in subject list.");
   }
 
   const cNum = mapClassToNumber[grade] || grade;
@@ -96,10 +114,6 @@ export const prepareSBATable = async () => {
     return alert(`No students found for ${grade}.`);
   }
 
-  const existingScoreCount = students.reduce((count, student) => {
-    return count + (student.sbaScores && sbaId in student.sbaScores ? 1 : 0);
-  }, 0);
-
   const listBody = document.getElementById("sba-student-list-body");
   listBody.innerHTML = "";
   document.getElementById("sba-grading-title").innerText =
@@ -116,9 +130,9 @@ export const prepareSBATable = async () => {
                class="score-input sba-batch-input"
                data-student-id="${student.id}"
                data-sba-id="${sbaId}"
-               min="0"
+               min="20"
                max="30"
-               placeholder="0-30"
+               placeholder="20-30"
                value="${existingScore}">
       </td>
     `;
@@ -129,15 +143,6 @@ export const prepareSBATable = async () => {
   const sbaGradingContainer = document.getElementById("sba-grading-container");
   sbaEntryInfoForm.classList.add("hidden");
   sbaGradingContainer.classList.remove("hidden");
-
-  if (sbaGradingContainer) {
-    sbaGradingContainer.addEventListener("input", (inputEventDetails) => {
-      const activeInput = inputEventDetails.target;
-      if (activeInput.classList.contains("sba-batch-input")) {
-        validateNumberRange(activeInput, 0, 30);
-      }
-    });
-  }
 };
 
 // ============================================

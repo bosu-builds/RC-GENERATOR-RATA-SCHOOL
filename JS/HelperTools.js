@@ -1,18 +1,43 @@
 "use strict";
 
 // NUMBER RANGE VALIDATOR
-export const validateNumberRange = (activeInputField, min, max) => {
-  const numericValue = parseFloat(activeInputField.value);
+export const validateNumberRange = (
+  activeInputField,
+  min,
+  max,
+  isBlur = false,
+) => {
+  if (!activeInputField) return;
 
-  if (
-    activeInputField.value !== "" &&
-    (isNaN(numericValue) || numericValue < min || numericValue > max)
-  ) {
-    // 1. Wipe the value
+  const rawValue = activeInputField.value.trim();
+  if (rawValue === "") return;
+
+  const numericValue = parseFloat(rawValue);
+  const numMin = Number(min);
+  const numMax = Number(max);
+  const maxDigits = String(numMax).length;
+
+  const isNaNValue = isNaN(numericValue);
+
+  // 1. Immediately reject numbers exceeding max (e.g., typing 35 when max is 30)
+  const isTooHigh = !isNaNValue && numericValue > numMax;
+
+  // 2. Reject numbers below min:
+  //    - On focusout/blur (isBlur = true): strict check (wipes any value < min)
+  //    - While typing (isBlur = false): wipes only when typed length reaches maxDigits (e.g. typing "15" for range 20-30)
+  const isTooLow =
+    !isNaNValue &&
+    numericValue < numMin &&
+    (isBlur || rawValue.length >= maxDigits);
+
+  if (isNaNValue || isTooHigh || isTooLow) {
+    // 1. Wipe invalid value
     activeInputField.value = "";
+
     // 2. Visual "Flash" Feedback
     activeInputField.classList.add("input-error-flash");
-    // 3. Remove the flash after 800ms so they can try again
+
+    // 3. Remove flash after 800ms
     setTimeout(() => {
       activeInputField.classList.remove("input-error-flash");
     }, 800);
