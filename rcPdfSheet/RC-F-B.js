@@ -121,20 +121,20 @@ const schoolSubjects = {
 // ============================================
 const getPhotoFolder = (classValue) => {
   const classStr = String(classValue).toUpperCase().trim();
-  
+
   // Check for KG classes
   if (classStr.includes("KG")) {
     if (classStr.includes("1")) return "kg1";
     if (classStr.includes("2")) return "kg2";
   }
-  
+
   // For Basic classes, extract number
   const match = classStr.match(/\d+/);
   if (match) {
     const num = parseInt(match[0]);
     return `basic${num}`;
   }
-  
+
   return "basic1"; // fallback
 };
 
@@ -401,9 +401,15 @@ async function loadReportCard() {
     const promotionClass = document.getElementById("promotion-class");
     if (student.info.term === "3" || student.info.term === 3) {
       // Determine next class
-      const classNum = Number(student.info.class);
-      const nextClass = classNum < 8 ? classNum + 1 : 8; // Don't promote past Basic 8
-      promotionClass.textContent = `BASIC ${nextClass}`;
+      if (student.info.class === "KG1") {
+        promotionClass.textContent = `KG 2`;
+      } else if (student.info.class === "KG2") {
+        promotionClass.textContent = `BASIC 1`;
+      } else {
+        const classNum = Number(student.info.class);
+        const nextClass = classNum < 6 ? `BASIC ${classNum + 1}` : "";
+        promotionClass.textContent = `${nextClass}`;
+      }
     } else {
       promotionClass.textContent = "N/A";
     }
@@ -442,7 +448,7 @@ window.printReportCard = function () {
   myWindow.document.write(`
     <html>
       <head>
-        <title>Report Card - ${document.getElementById("childName").textContent}</title>
+        <title>${student.id}</title>
         <link rel="stylesheet" type="text/css" href="RC-F-B.css">
         <style>
           @page { size: A4 landscape; margin: 0; }
