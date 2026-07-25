@@ -441,6 +441,10 @@ loadReportCard();
 // PRINT FUNCTION
 // ============================================
 window.printReportCard = function () {
+  // Extract studentId from URL params for the window title / PDF file name
+  const urlParams = new URLSearchParams(window.location.search);
+  const studentId = urlParams.get("studentId") || "ReportCard";
+
   const frontPage = document.getElementById("report-card-fp").innerHTML;
   const backPage = document.getElementById("report-card-bp").innerHTML;
 
@@ -448,7 +452,7 @@ window.printReportCard = function () {
   myWindow.document.write(`
     <html>
       <head>
-        <title>${student.id}</title>
+        <title>Report Card - ${studentId}</title>
         <link rel="stylesheet" type="text/css" href="RC-F-B.css">
         <style>
           @page { size: A4 landscape; margin: 0; }
